@@ -1,0 +1,10 @@
+# Sentinelle : paquets du service, de la démo et des tests. Python 3.10 ou plus récent (3.12 conseillé).
+numpy
+pandas>=2.2
+scikit-learn>=1.4
+xgboost>=3.4        # le modèle téléchargé a été entraîné avec XGBoost 3.4.1
+fastapi
+uvicorn
+streamlit>=1.30
+httpx               # pour les tests du service
+pytest

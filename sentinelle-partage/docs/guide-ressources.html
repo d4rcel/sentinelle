@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinelle, guide des ressources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fond: #F3F6F8;
+  --surface: #FFFFFF;
+  --encre: #132238;
+  --discret: #54657A;
+  --trait: #D3DDE4;
+  --accent: #0F6B6B;
+  --accent-fond: #E1F0EF;
+  --vert: #1B6E42;   --vert-fond: #E0F1E7;
+  --bleu: #1F5A9E;   --bleu-fond: #E2ECF8;
+  --ambre: #8A5200;  --ambre-fond: #FBEBD0;
+  --rouge: #A32A22;  --rouge-fond: #FAE3E0;
+  --gris: #4E5B69;   --gris-fond: #E7ECF0;
+  --titre: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --texte: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --code: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond: #0E161F;
+    --surface: #16212D;
+    --encre: #E7EEF4;
+    --discret: #A1B1C1;
+    --trait: #2B3A49;
+    --accent: #62CFC6;
+    --accent-fond: #153734;
+    --vert: #7AD9A2;   --vert-fond: #173626;
+    --bleu: #8DBDF5;   --bleu-fond: #172C46;
+    --ambre: #F1BC6A;  --ambre-fond: #3B2B10;
+    --rouge: #F5A199;  --rouge-fond: #431C18;
+    --gris: #B4C1CD;   --gris-fond: #25323F;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--encre);
+  font: 400 1.0625rem/1.6 var(--texte);
+}
+a { color: var(--accent); text-underline-offset: 0.15em; }
+a:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+}
+code {
+  font: 0.9em var(--code);
+  background: var(--gris-fond);
+  padding: 0.08em 0.35em;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--gris-fond);
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font: 0.85rem/1.5 var(--code);
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+
+.page {
+  display: grid;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  max-width: 82rem;
+  margin: 0 auto;
+}
+nav.sommaire {
+  position: sticky; top: 0;
+  align-self: start;
+  height: 100vh; overflow-y: auto;
+  padding: 2rem 1.25rem 2rem 1.5rem;
+  border-right: 1px solid var(--trait);
+  font-size: 0.95rem;
+}
+nav.sommaire strong {
+  display: block;
+  font: 700 1.35rem/1.1 var(--titre);
+  margin-bottom: 0.25rem;
+}
+nav.sommaire p { margin: 0 0 1.25rem; color: var(--discret); font-size: 0.875rem; }
+nav.sommaire ol { list-style: none; margin: 0; padding: 0; }
+nav.sommaire li a {
+  display: block;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  color: var(--encre);
+  text-decoration: none;
+}
+nav.sommaire li a:hover { background: var(--accent-fond); color: var(--accent); }
+
+main { padding: 2.5rem 2.5rem 5rem; min-width: 0; }
+main > section { margin-top: 4rem; }
+h1 {
+  font: 700 clamp(2.1rem, 5vw, 3.4rem)/1.05 var(--titre);
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+  max-width: 18ch;
+}
+h2 {
+  font: 700 1.9rem/1.15 var(--titre);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 3px solid var(--encre);
+}
+h3 { font: 700 1.3rem/1.25 var(--titre); margin: 2.5rem 0 0.75rem; }
+h4 { font: 600 0.95rem/1.3 var(--texte); margin: 0 0 0.3rem; color: var(--accent); }
+p, li { max-width: 72ch; }
+.chapo { font-size: 1.2rem; line-height: 1.5; max-width: 60ch; color: var(--discret); }
+.intro-section { color: var(--discret); max-width: 68ch; }
+
+/* Le parcours d'un transfert */
+.parcours {
+  list-style: none; counter-reset: etape;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 0; margin: 2rem 0 0.75rem; padding: 0;
+}
+.parcours li {
+  counter-increment: etape;
+  position: relative;
+  padding: 0.9rem 0.9rem 1rem;
+  border-top: 4px solid var(--trait);
+  font-size: 0.925rem; line-height: 1.4;
+  max-width: none;
+}
+.parcours li::before {
+  content: counter(etape);
+  display: block;
+  font: 700 1.5rem/1 var(--titre);
+  color: var(--discret);
+  margin-bottom: 0.4rem;
+}
+.parcours li b { display: block; font-size: 1rem; }
+.parcours li.ici { border-top-color: var(--accent); background: var(--accent-fond); border-radius: 0 0 8px 8px; }
+.parcours li.ici::before { color: var(--accent); }
+.parcours li.perdu { border-top-color: var(--rouge); }
+.parcours li.perdu::before { color: var(--rouge); }
+.legende-parcours { font-size: 0.9rem; color: var(--discret); }
+
+/* Étiquettes */
+.etiq {
+  display: inline-block;
+  font: 600 0.8rem/1 var(--texte);
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.v-utilise  { background: var(--vert-fond);  color: var(--vert); }
+.v-examiner { background: var(--ambre-fond); color: var(--ambre); }
+.v-apprendre{ background: var(--bleu-fond);  color: var(--bleu); }
+.v-citer    { background: var(--accent-fond);color: var(--accent); }
+.v-ecarte   { background: var(--rouge-fond); color: var(--rouge); }
+.p-preuve   { background: transparent; color: var(--discret); border: 1px solid var(--trait); }
+
+.legendes { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+.legendes > div { background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; padding: 1.1rem 1.25rem; }
+.legendes h3 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+.legendes dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 0.9rem; font-size: 0.925rem; align-items: baseline; }
+.legendes dd { margin: 0; }
+
+/* Filtres */
+.filtres { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0 0; align-items: center; }
+.filtres span { font-size: 0.925rem; color: var(--discret); margin-right: 0.25rem; }
+.filtres button {
+  font: 600 0.875rem/1 var(--texte);
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--trait);
+  background: var(--surface);
+  color: var(--encre);
+  cursor: pointer;
+}
+.filtres button[aria-pressed="true"] { background: var(--encre); color: var(--fond); border-color: var(--encre); }
+.compte { font-size: 0.9rem; color: var(--discret); margin: 0.6rem 0 0; }
+
+/* Fiches */
+.fiche {
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  padding: 1.25rem 1.4rem 1.1rem;
+  margin: 1rem 0;
+}
+.fiche[hidden] { display: none; }
+.fiche > header { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.6rem; margin-bottom: 0.9rem; }
+.fiche > header h3 { margin: 0 auto 0 0; font-size: 1.2rem; }
+.fiche .deux { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.fiche .deux p { margin: 0 0 0.6rem; font-size: 0.975rem; }
+.fiche .pratique {
+  display: flex; flex-wrap: wrap; gap: 0.35rem 1.5rem;
+  margin: 0.6rem 0 0; padding-top: 0.75rem;
+  border-top: 1px solid var(--trait);
+  font-size: 0.875rem;
+}
+.fiche .pratique div { display: flex; gap: 0.4rem; }
+.fiche .pratique dt { color: var(--discret); }
+.fiche .pratique dd { margin: 0; overflow-wrap: anywhere; }
+.fiche.majeure { border-left: 5px solid var(--accent); }
+details { margin-top: 0.9rem; border-top: 1px solid var(--trait); padding-top: 0.7rem; }
+details summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; color: var(--accent); }
+details > *:not(summary) { font-size: 0.95rem; }
+
+.alerte {
+  background: var(--ambre-fond);
+  color: var(--encre);
+  border-left: 5px solid var(--ambre);
+  border-radius: 0 10px 10px 0;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  max-width: 76ch;
+}
+.alerte p { margin: 0.3rem 0; }
+.alerte b:first-child { color: var(--ambre); }
+.manque {
+  background: var(--gris-fond);
+  border-radius: 10px;
+  padding: 0.9rem 1.2rem;
+  margin: 1.25rem 0;
+  max-width: 76ch;
+  font-size: 0.975rem;
+}
+.manque b { color: var(--gris); }
+
+.defile { overflow-x: auto; margin: 1rem 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.925rem; background: var(--surface); }
+th, td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--trait); vertical-align: top; }
+thead th { font-weight: 600; border-bottom: 2px solid var(--encre); white-space: nowrap; }
+td.nb { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.lexique { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0 2rem; margin: 1.25rem 0 0; }
+.lexique div { padding: 0.8rem 0; border-top: 1px solid var(--trait); }
+.lexique dt { font-weight: 600; }
+.lexique dd { margin: 0.15rem 0 0; font-size: 0.95rem; color: var(--discret); }
+
+.docs { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+.doc { background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; padding: 1.1rem 1.25rem; }
+.doc h4 { font: 600 1rem/1.3 var(--code); color: var(--encre); margin-bottom: 0.5rem; overflow-wrap: anywhere; }
+.doc p { margin: 0 0 0.5rem; font-size: 0.95rem; }
+.doc ul { margin: 0.3rem 0 0.6rem; padding-left: 1.1rem; font-size: 0.925rem; }
+.doc .quand { color: var(--discret); font-size: 0.9rem; margin: 0; }
+
+footer { margin-top: 4rem; padding-top: 1.25rem; border-top: 1px solid var(--trait); color: var(--discret); font-size: 0.9rem; }
+
+@media (max-width: 60rem) {
+  .page { grid-template-columns: 1fr; }
+  nav.sommaire { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--trait); padding: 1.25rem 1rem; }
+  nav.sommaire ol { display: flex; flex-wrap: wrap; gap: 0.15rem; }
+  main { padding: 1.5rem 1rem 4rem; }
+  .parcours { grid-template-columns: 1fr; }
+  .parcours li { border-top: 0; border-left: 4px solid var(--trait); }
+  .parcours li.ici { border-left-color: var(--accent); border-radius: 0 8px 8px 0; }
+  .parcours li.perdu { border-left-color: var(--rouge); }
+  .legendes, .fiche .deux { grid-template-columns: 1fr; gap: 1rem; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="sommaire" aria-label="Sommaire">
+  <strong>Sentinelle</strong>
+  <p>Guide des ressources, état au 19 novembre 2026</p>
+  <ol>
+    <li><a href="#projet">Le projet en bref</a></li>
+    <li><a href="#lire">Comment lire ce guide</a></li>
+    <li><a href="#lexique">Les mots à connaître</a></li>
+    <li><a href="#donnees">Les données</a></li>
+    <li><a href="#code">Le code de référence</a></li>
+    <li><a href="#contexte">PI-SPI et les arnaques</a></li>
+    <li><a href="#partenaires">L'événement et les partenaires</a></li>
+    <li><a href="#machines">Machines et versions</a></li>
+    <li><a href="#dossier">Les fichiers du dossier</a></li>
+    <li><a href="#trous">Ce qui manque encore</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header id="projet">
+  <h1>Tout ce que nous avons en main pour construire Sentinelle</h1>
+  <p class="chapo">Ce guide présente chaque ressource trouvée pendant la recherche : ce que c'est, à quoi elle sert dans notre projet, et ce qu'il faut en savoir avant de s'en servir. Il résume aussi les fichiers des dossiers <code>docs/</code> et <code>research_notes/</code>.</p>
+
+  <p>Sentinelle est un service qui note le compte destinataire d'un transfert instantané, juste avant que l'expéditeur confirme. Si le compte se comporte comme un compte « mule » (un compte complice qui reçoit l'argent volé et le fait sortir), l'expéditeur reçoit une alerte, ou le transfert est bloqué.</p>
+
+  <ol class="parcours" aria-label="Parcours d'un transfert sur PI-SPI">
+    <li><b>Saisie</b>L'expéditeur entre le numéro du destinataire et le montant.</li>
+    <li><b>Nom affiché</b>PI-SPI affiche déjà le nom, le prénom et le pays du destinataire.</li>
+    <li class="ici"><b>Sentinelle</b>Notre service note le compte et renvoie un score avec une raison lisible.</li>
+    <li><b>Confirmation</b>L'expéditeur valide avec son code.</li>
+    <li class="perdu"><b>Irrévocable</b>L'argent arrive en quelques secondes. Il ne peut plus être annulé.</li>
+  </ol>
+  <p class="legende-parcours">La place de Sentinelle à l'étape 3 est notre lecture des documents de la BCEAO, pas une fonction prévue par PI-SPI.</p>
+
+  <p>La version 1 utilise XGBoost entraîné sur GPU. La version 2, si le temps le permet, ajoute un réseau de neurones sur graphe dont les résultats alimentent XGBoost. Le hackathon a lieu les 25 et 26 novembre 2026.</p>
+</header>
+
+<section id="lire">
+  <h2>Comment lire ce guide</h2>
+  <p class="intro-section">Chaque ressource a une fiche avec deux étiquettes. La première dit ce que nous en faisons. La seconde dit comment l'information a été vérifiée.</p>
+
+  <div class="legendes">
+    <div>
+      <h3>Ce que nous en faisons</h3>
+      <dl>
+        <dt><span class="etiq v-utilise">Utilisé</span></dt><dd>Entre dans le projet tel quel.</dd>
+        <dt><span class="etiq v-examiner">À examiner</span></dt><dd>Prometteur, mais à tester avant de décider.</dd>
+        <dt><span class="etiq v-apprendre">Pour apprendre</span></dt><dd>À lire ou à imiter, pas à brancher dans le produit.</dd>
+        <dt><span class="etiq v-citer">À citer</span></dt><dd>Source pour le pitch ou pour justifier un choix.</dd>
+        <dt><span class="etiq v-ecarte">Écarté</span></dt><dd>Examiné, puis abandonné. La raison est donnée.</dd>
+      </dl>
+    </div>
+    <div>
+      <h3>Comment c'est vérifié</h3>
+      <dl>
+        <dt><span class="etiq p-preuve">Mesuré</span></dt><dd>Fichier téléchargé et compté par nous.</dd>
+        <dt><span class="etiq p-preuve">Lu</span></dt><dd>Page ou fichier ouvert le 19 novembre 2026.</dd>
+        <dt><span class="etiq p-preuve">Tiers</span></dt><dd>Information lue ailleurs qu'à la source.</dd>
+        <dt><span class="etiq p-preuve">Non testé</span></dt><dd>Lien identifié, mais contenu non ouvert ou commande non lancée.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="alerte">
+    <p><b>À garder en tête.</b> Rien n'a été installé ni lancé sur GPU pendant la recherche. Seuls le script de téléchargement et les comptages sur PaySim ont été exécutés pour de vrai.</p>
+  </div>
+
+  <div class="filtres" role="group" aria-label="Filtrer les fiches">
+    <span>Afficher :</span>
+    <button type="button" data-filtre="tout" aria-pressed="true">Toutes les fiches</button>
+    <button type="button" data-filtre="utilise" aria-pressed="false">Utilisé</button>
+    <button type="button" data-filtre="examiner" aria-pressed="false">À examiner</button>
+    <button type="button" data-filtre="apprendre" aria-pressed="false">Pour apprendre</button>
+    <button type="button" data-filtre="citer" aria-pressed="false">À citer</button>
+    <button type="button" data-filtre="ecarte" aria-pressed="false">Écarté</button>
+  </div>
+  <p class="compte" id="compte" aria-live="polite"></p>
+</section>
+
+<section id="lexique">
+  <h2>Les mots à connaître</h2>
+  <p class="intro-section">Ces termes reviennent dans toutes les fiches.</p>
+  <dl class="lexique">
+    <div><dt>PI-SPI</dt><dd>La plateforme de paiement instantané de la BCEAO, qui relie banques et opérateurs de mobile money des 8 pays de l'UEMOA.</dd></div>
+    <div><dt>Compte mule</dt><dd>Compte complice qui reçoit l'argent d'une arnaque et le fait sortir vite, souvent par un retrait en espèces.</dd></div>
+    <div><dt>Irrévocable</dt><dd>Qui ne peut plus être annulé. Sur PI-SPI, c'est le cas dès que l'expéditeur a confirmé.</dd></div>
+    <div><dt>Jeu de données simulé</dt><dd>Des transactions fabriquées par un programme qui imite de vraies données. Aucune vraie personne n'y figure.</dd></div>
+    <div><dt>Signal</dt><dd>Un nombre calculé sur un compte et donné au modèle, par exemple « nombre d'expéditeurs nouveaux en 24 heures ».</dd></div>
+    <div><dt>XGBoost</dt><dd>Un modèle fait de centaines de petits arbres de décision. Très efficace sur des tableaux de chiffres.</dd></div>
+    <div><dt>GNN</dt><dd>Réseau de neurones sur graphe. Il regarde un compte et aussi ses voisins : qui lui envoie de l'argent, à qui il en envoie.</dd></div>
+    <div><dt>Graphe</dt><dd>Un dessin de points reliés par des traits. Ici, les points sont les comptes et les traits sont les transferts.</dd></div>
+    <div><dt>GPU</dt><dd>Carte graphique. Elle fait énormément de calculs en parallèle, ce qui accélère l'entraînement des modèles.</dd></div>
+    <div><dt>CUDA</dt><dd>Le logiciel de NVIDIA qui permet aux programmes d'utiliser le GPU. Sa version dépend du pilote installé.</dd></div>
+    <div><dt>RAPIDS et cuDF</dt><dd>Outils NVIDIA qui font sur GPU ce que pandas fait sur le processeur. cuDF est la partie « tableaux ».</dd></div>
+    <div><dt>SHAP</dt><dd>Méthode qui dit, pour un score donné, combien chaque signal a pesé. C'est ce qui fournit la « raison lisible ».</dd></div>
+    <div><dt>F1</dt><dd>Note entre 0 et 100 % qui combine deux questions : le modèle trouve-t-il les fraudes, et se trompe-t-il peu quand il alerte ?</dd></div>
+    <div><dt>Fuite de données</dt><dd>Le modèle voit pendant l'entraînement une information qu'il n'aura pas en vrai. Ses résultats paraissent excellents, mais ne valent rien.</dd></div>
+  </dl>
+</section>
+
+<section id="donnees">
+  <h2>Les données</h2>
+  <p class="intro-section">Un modèle apprend à partir d'exemples. Il nous faut donc des transactions, avec pour chacune la réponse « fraude » ou « pas fraude ». Il n'existe aucun jeu public de vraies transactions de mobile money en Afrique de l'Ouest : tout ce qui suit est simulé.</p>
+
+  <article class="fiche majeure" data-v="utilise">
+    <header>
+      <h3>PaySim</h3>
+      <span class="etiq v-utilise">Utilisé</span>
+      <span class="etiq p-preuve">Mesuré</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Un fichier de 6 362 620 transactions de mobile money simulées, sur 30 jours. Le simulateur a été réglé à partir de vraies données fournies par Ericsson, venues d'un pays africain non nommé.</p>
+        <p>Chaque ligne donne l'heure, le type d'opération (dépôt, retrait, paiement, transfert), le montant, le compte qui envoie, le compte qui reçoit, et si c'est une fraude. Il y a 8 213 fraudes, soit 0,129 % des lignes.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est notre « trafic de fond » : des millions de transactions normales qui ressemblent à du mobile money, dans lesquelles nous injectons nos scénarios d'arnaque.</p>
+        <p>C'est le jeu le plus connu du domaine. Un jury le reconnaîtra, et il se télécharge en une commande.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://www.kaggle.com/datasets/ealaxi/paysim1">Kaggle, ealaxi/paysim1</a></dd></div>
+      <div><dt>Licence</dt><dd>CC BY-SA 4.0</dd></div>
+      <div><dt>Taille</dt><dd>186 Mo compressé, 471 Mo en CSV</dd></div>
+      <div><dt>Accès</dt><dd>Sans compte aujourd'hui, jeton Kaggle en secours</dd></div>
+    </dl>
+    <details open>
+      <summary>Ce que PaySim ne contient pas, et pourquoi c'est notre premier risque</summary>
+      <p>Nous avons téléchargé le fichier et compté ligne par ligne.</p>
+      <div class="defile">
+      <table>
+        <thead><tr><th>Mesure</th><th>Résultat</th></tr></thead>
+        <tbody>
+          <tr><td>Fraudes par type</td><td>4 097 transferts et 4 116 retraits, aucune ailleurs</td></tr>
+          <tr><td>Expéditeurs distincts</td><td>6 353 307 ; un expéditeur fait au plus 3 transactions</td></tr>
+          <tr><td>Destinataires clients</td><td>571 961 ; ils reçoivent 4 transactions en médiane, 7,4 en moyenne</td></tr>
+          <tr><td>Destinataires marchands</td><td>2 150 401</td></tr>
+          <tr><td>Comptes ayant reçu une fraude</td><td>8 169 ; 8 125 n'en reçoivent qu'une, 44 en reçoivent deux, aucun plus</td></tr>
+          <tr><td>Destinataires d'un transfert frauduleux qui font eux-mêmes un retrait</td><td>3 sur 4 097</td></tr>
+          <tr><td>Fraudes où le montant égale le solde de départ</td><td>8 034 sur 8 213</td></tr>
+          <tr><td>Colonne <code>isFlaggedFraud</code></td><td>16 lignes seulement, donc inutile</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <ul>
+        <li><b>Il n'y a pas de compte mule dans PaySim.</b> Un compte reçoit une fraude une fois, deux au maximum, et l'argent ne ressort pas par ce compte.</li>
+        <li><b>Les expéditeurs n'ont pas d'historique.</b> On ne peut pas calculer « ce transfert est inhabituel pour cet expéditeur ».</li>
+        <li><b>Les colonnes de solde trichent.</b> L'auteur écrit qu'elles « must not be used ». Un modèle qui les lit obtient un score presque parfait et sans valeur.</li>
+        <li>Le pays et la monnaie sont masqués. Ne pas présenter PaySim comme des données d'Afrique de l'Ouest.</li>
+        <li>La licence oblige à citer l'auteur et à partager sous la même licence tout jeu dérivé que nous publierions.</li>
+      </ul>
+      <p><b>Conséquence.</b> Tout le signal « mule » viendra de nos scénarios injectés. Le modèle sera évalué sur des schémas que nous avons écrits nous-mêmes. La parade proposée (cacher un scénario entier à l'entraînement) est dans <a href="roadmap-proposition.md">la proposition de roadmap</a>.</p>
+      <p>Colonnes du fichier : <code>step</code> (heure, de 1 à 743), <code>type</code>, <code>amount</code>, <code>nameOrig</code>, <code>oldbalanceOrg</code>, <code>newbalanceOrig</code>, <code>nameDest</code>, <code>oldbalanceDest</code>, <code>newbalanceDest</code>, <code>isFraud</code>, <code>isFlaggedFraud</code>.</p>
+    </details>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Le simulateur PaySim et son article</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Le programme Java qui a fabriqué PaySim, et l'article scientifique de 2016 qui explique la méthode.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Comprendre comment la fraude est générée dans PaySim, et avoir une référence à citer. Il est inutile de faire tourner le simulateur : son dernier changement de code date de 2019.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://github.com/EdgarLopezPhD/PaySim">dépôt GitHub</a>, <a href="https://www.msc-les.org/proceedings/emss/2016/EMSS2016_249.pdf">article EMSS 2016</a></dd></div>
+      <div><dt>Licence</dt><dd>GPL-3.0 pour le code</dd></div>
+      <div><dt>Accès</dt><dd>Libre</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche majeure" data-v="utilise">
+    <header>
+      <h3>IBM AML, fichiers HI-Small</h3>
+      <span class="etiq v-utilise">Utilisé</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Des virements bancaires simulés par IBM, dans lesquels du blanchiment d'argent est caché et étiqueté. Le jeu complet compte six fichiers, de 5 à 180 millions de transactions. HI-Small est le plus petit : environ 5 millions de virements.</p>
+        <p>Huit schémas de réseau y sont nommés, par exemple l'argent qui se disperse vers plusieurs comptes ou qui tourne en cercle.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est le seul jeu où de vrais schémas de réseau ont été étiquetés par d'autres que nous. Il sert de contrôle indépendant : nos signaux fonctionnent-ils aussi sur des fraudes que nous n'avons pas écrites ?</p>
+        <p>Il sert aussi de terrain d'essai pour le GNN de la version 2.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml">Kaggle, ealtman2019</a></dd></div>
+      <div><dt>Licence</dt><dd>CDLA-Sharing-1.0</dd></div>
+      <div><dt>Taille</dt><dd>41,6 Go au total ; HI-Small : 0,48 Go</dd></div>
+      <div><dt>Accès</dt><dd>Sans compte aujourd'hui, jeton en secours</dd></div>
+    </dl>
+    <details>
+      <summary>Pièges à connaître</summary>
+      <ul>
+        <li>Ne jamais télécharger le jeu entier : 41,6 Go. Notre script ne prend que HI-Small. Le téléchargement complet de HI-Small n'a pas encore été lancé, seul le lien a été testé.</li>
+        <li>Deux colonnes s'appellent <code>Account</code>. La seconde devient <code>Account.1</code> à la lecture.</li>
+        <li>Les transactions datées après la période annoncée sont toutes du blanchiment, selon l'auteur. Il faut les retirer avant d'entraîner.</li>
+        <li>Ce sont des virements bancaires en plusieurs monnaies, pas du mobile money.</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Article AMLworld (NeurIPS 2023)</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>L'article scientifique qui décrit le jeu IBM AML et compare plusieurs modèles dessus.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Il justifie notre ordre de travail. Sur HI-Small, des signaux de graphe donnés à XGBoost atteignent 63,2 % de F1, contre 56,8 % pour le meilleur GNN. XGBoost d'abord, GNN ensuite : c'est aussi ce que dit la recherche.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://arxiv.org/pdf/2306.16424">arXiv 2306.16424</a></dd></div>
+      <div><dt>Accès</dt><dd>Libre</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="examiner">
+    <header>
+      <h3>MoMTSim-TZ</h3>
+      <span class="etiq v-examiner">À examiner</span>
+      <span class="etiq p-preuve">Lu, colonnes non testées</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>19 614 235 transactions de mobile money simulées pour la Tanzanie, avec 0,105 % de fraude. Douze types de fraude y sont étiquetés, dont un type « Mule Accounts ».</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est le candidat le plus proche de notre sujet : du mobile money africain avec des comptes mules étiquetés. S'il contient des mules qui reviennent plusieurs fois, il devient un meilleur jeu d'entraînement que PaySim.</p>
+        <p>Nous n'avons pas encore ouvert les fichiers. La roadmap prévoit deux heures d'examen, pas plus.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://doi.org/10.5281/zenodo.22997329">Zenodo, DOI 10.5281/zenodo.22997329</a></dd></div>
+      <div><dt>Licence</dt><dd>CC BY 4.0</dd></div>
+      <div><dt>Taille</dt><dd>1,31 Go compressé, 3,45 Go en CSV</dd></div>
+      <div><dt>Accès</dt><dd>Sans compte</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="apprendre">
+    <header>
+      <h3>Elliptic, dans PyTorch Geometric</h3>
+      <span class="etiq v-apprendre">Pour apprendre</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Un graphe de 203 769 transactions en bitcoin, dont 4 545 illicites. Il se télécharge tout seul depuis la bibliothèque PyTorch Geometric.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Un exemple qui marche du premier coup pour apprendre à entraîner un GNN. La licence interdit l'usage commercial et les dérivés : c'est un terrain d'exercice, pas une donnée du produit.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.datasets.EllipticBitcoinDataset.html">documentation PyTorch Geometric</a></dd></div>
+      <div><dt>Licence</dt><dd>CC BY-NC-ND</dd></div>
+      <div><dt>Accès</dt><dd>Téléchargement automatique</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="ecarte">
+    <header>
+      <h3>MoMTSim Makerere</h3>
+      <span class="etiq v-ecarte">Écarté</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Du mobile money simulé pour l'Ouganda, avec les mêmes colonnes que PaySim. Deux fichiers de 1,72 et 4,23 millions de lignes.</p>
+      </div>
+      <div>
+        <h4>Pourquoi nous l'écartons</h4>
+        <p>Les fichiers contiennent 10 % et 53 % de fraude. Ce n'est pas réaliste : la fraude réelle est rare. Le script sait le télécharger, au cas où.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://data.mendeley.com/datasets/zhj366m53p/2">Mendeley Data</a></dd></div>
+      <div><dt>Licence</dt><dd>CC BY 4.0</dd></div>
+      <div><dt>Taille</dt><dd>149 et 349 Mo</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="ecarte">
+    <header>
+      <h3>IBM AMLSim et le dépôt IBM/AML-Data</h3>
+      <span class="etiq v-ecarte">Écarté</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>AMLSim est un simulateur de blanchiment bancaire. AML-Data est un dépôt GitHub qui ne contient qu'un texte de présentation et une licence : il renvoie vers Kaggle.</p>
+      </div>
+      <div>
+        <h4>Pourquoi nous les écartons</h4>
+        <p>AMLSim demande Java 8, quinze bibliothèques à poser à la main et Python 3.7. C'est trop de temps perdu pour un hackathon. AML-Data ne contient aucune donnée.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://github.com/IBM/AMLSim">IBM/AMLSim</a>, <a href="https://github.com/IBM/AML-Data">IBM/AML-Data</a></dd></div>
+      <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="ecarte">
+    <header>
+      <h3>Xente, Sparkov, TabFormer, BAF, SAML-D</h3>
+      <span class="etiq v-ecarte">Écarté</span>
+      <span class="etiq p-preuve">Tiers</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>D'autres jeux de données de fraude souvent cités. Xente contient de vraies transactions de commerce en ligne en Ouganda (17 Mo, compte Zindi obligatoire, redistribution interdite).</p>
+      </div>
+      <div>
+        <h4>Pourquoi nous les écartons</h4>
+        <p>Xente, Sparkov, TabFormer et BAF n'ont pas de compte destinataire : on ne peut pas y suivre l'argent d'un compte à l'autre. SAML-D a une licence non commerciale.</p>
+      </div>
+    </div>
+  </article>
+
+  <div class="manque"><b>Non trouvé.</b> Aucun jeu de données public pour l'Afrique de l'Ouest ou l'UEMOA. Aucun jeu réel de mobile money étiqueté pour les comptes mules.</div>
+
+  <h3>Comment télécharger</h3>
+  <p>Le script <code>scripts/telecharger_donnees.sh</code> prend PaySim et IBM AML HI-Small par défaut. Les six liens ont été testés le 19 novembre 2026 et PaySim a été téléchargé en entier.</p>
+<pre><code>scripts/telecharger_donnees.sh --test      # vérifie les liens, sans rien télécharger
+scripts/telecharger_donnees.sh             # PaySim et IBM AML HI-Small
+scripts/telecharger_donnees.sh momtsim-tz  # un jeu optionnel</code></pre>
+  <p>Kaggle ne garantit nulle part le téléchargement sans compte. Si un jour il échoue, l'en-tête du script explique comment créer et configurer un jeton Kaggle.</p>
+</section>
+
+<section id="code">
+  <h2>Le code de référence</h2>
+  <p class="intro-section">Du code écrit par d'autres, à lire ou à imiter pour ne pas partir de zéro.</p>
+
+  <article class="fiche majeure" data-v="apprendre">
+    <header>
+      <h3>Le blueprint NVIDIA Financial Fraud Detection</h3>
+      <span class="etiq v-apprendre">Pour apprendre</span>
+      <span class="etiq p-preuve">Lu, conteneur non testé</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Un exemple complet publié par NVIDIA pour détecter la fraude à la carte bancaire. Il prépare les données avec cuDF, entraîne un GNN (GraphSAGE) qui résume chaque compte en une liste de nombres, puis entraîne XGBoost sur ces nombres.</p>
+        <p>C'est exactement l'architecture de notre version 2.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Nous reprenons l'idée en deux étages et son explication, les réglages publiés (GraphSAGE à 2 sauts et 32 dimensions, XGBoost de profondeur 6 avec 512 arbres), les scripts de préparation comme modèle de code, et le découpage des données dans le temps.</p>
+        <p>Nous ne pouvons pas le faire tourner. Il ne faut donc pas dire au jury que nous « utilisons le blueprint NVIDIA ».</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://build.nvidia.com/nvidia/financial-fraud-detection">page du blueprint</a>, <a href="https://github.com/NVIDIA-AI-Blueprints/financial-fraud-detection">dépôt GitHub</a>, <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/cugraph/containers/financial-fraud-training">conteneur</a>, <a href="https://docs.nvidia.com/nim/financial-fraud-training/latest/index.html">documentation</a></dd></div>
+      <div><dt>Licence</dt><dd>Apache-2.0 pour le dépôt ; licence NVIDIA non lue pour le conteneur</dd></div>
+      <div><dt>Taille</dt><dd>Dépôt 1,5 Mo ; conteneur 13,27 Go</dd></div>
+    </dl>
+    <details>
+      <summary>Ce qui nous empêche de le lancer</summary>
+      <ul>
+        <li>Le dépôt GitHub ne contient aucun code d'entraînement. Tout se passe dans un conteneur fermé.</li>
+        <li>Il faut une clé NGC. Un texte parle d'une licence payante, un autre d'un compte gratuit : non tranché, non testé.</li>
+        <li>La documentation demande un GPU d'au moins 32 Go de mémoire. Une autre page NVIDIA cite le T4 comme acceptable : les deux se contredisent.</li>
+        <li>Les notebooks du dépôt visent la version 2.0.0 du conteneur, incompatible avec la 3.0.0 actuelle.</li>
+        <li>Le jeu utilisé, <a href="https://github.com/IBM/TabFormer">TabFormer</a>, est de la fraude à la carte, sans compte destinataire.</li>
+      </ul>
+      <p>Seul chiffre de gain trouvé : un <a href="https://developer.nvidia.com/blog/optimizing-fraud-detection-in-financial-services-with-graph-neural-networks-and-nvidia-gpus/">article NVIDIA de 2022</a> rapporte une précision moyenne passant de 0,79 à 0,90 en ajoutant les résultats du GNN, sur TabFormer.</p>
+    </details>
+  </article>
+
+  <article class="fiche" data-v="utilise">
+    <header>
+      <h3>XGBoost sur GPU</h3>
+      <span class="etiq v-utilise">Utilisé</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>La documentation officielle de XGBoost pour l'entraînement sur GPU, et son exemple de calcul des contributions de chaque signal.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est le cœur de la version 1. Un seul réglage sépare le processeur du GPU : <code>device="cuda"</code> avec <code>tree_method="hist"</code>. L'option <code>pred_contribs=True</code> donne le poids de chaque signal dans un score : c'est notre « raison lisible ».</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://xgboost.readthedocs.io/en/stable/gpu/index.html">page GPU</a>, <a href="https://xgboost.readthedocs.io/en/stable/python/examples/gpu_tree_shap.html">exemple SHAP sur GPU</a></dd></div>
+      <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+    <details>
+      <summary>Trois faits lus dans la documentation, importants pour nous</summary>
+      <ul>
+        <li>Un modèle entraîné sur GPU fonctionne sur une machine sans GPU, et inversement. Le service de score peut donc tourner sur un ordinateur ordinaire.</li>
+        <li>La prédiction supporte plusieurs appels en même temps. Elle est donc utilisable dans FastAPI.</li>
+        <li>Le modèle se sauvegarde en <code>.ubj</code> ou <code>.json</code>, pas avec <code>pickle</code>.</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="fiche" data-v="utilise">
+    <header>
+      <h3>RAPIDS et cudf.pandas</h3>
+      <span class="etiq v-utilise">Utilisé</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>RAPIDS est la famille d'outils NVIDIA pour traiter des données sur GPU. <code>cudf.pandas</code> est un mode qui accélère du code pandas sans le modifier, et qui revient au processeur quand une opération n'existe pas sur GPU.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Nous écrivons le calcul des signaux en pandas dès maintenant, sur nos ordinateurs. Au hackathon, le même code s'accélère sur GPU. C'est aussi ce qui permet de mesurer le gain du GPU sur la préparation des données.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://docs.rapids.ai/api/cudf/stable/cudf_pandas/">cudf.pandas</a>, <a href="https://docs.rapids.ai/install/">installation RAPIDS</a></dd></div>
+      <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="utilise">
+    <header>
+      <h3>PyTorch Geometric et son tutoriel NeighborLoader</h3>
+      <span class="etiq v-utilise">Utilisé en version 2</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>La bibliothèque Python la plus répandue pour les GNN. Le tutoriel NeighborLoader montre comment entraîner un GNN sur un grand graphe en ne chargeant qu'un petit groupe de voisins à la fois.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est la base de la version 2 et la méthode à suivre pour GraphSAGE. Les <a href="https://pytorch-geometric.readthedocs.io/en/latest/get_started/colabs.html">notebooks Colab officiels</a> servent à la montée en compétences ; nous avons lu leur liste, pas testé les notebooks.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://github.com/pyg-team/pytorch_geometric">dépôt GitHub</a>, <a href="https://pytorch-geometric.readthedocs.io/en/latest/tutorial/neighbor_loader.html">tutoriel NeighborLoader</a></dd></div>
+      <div><dt>Licence</dt><dd>MIT</dd></div>
+      <div><dt>Version</dt><dd>2.8.1</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="apprendre">
+    <header>
+      <h3>Exemples fraude de cugraph-gnn</h3>
+      <span class="etiq v-apprendre">Pour apprendre</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Un exemple NVIDIA qui entraîne un GNN sur Elliptic, puis donne ses résultats à une forêt d'arbres sur GPU.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est l'exemple public le plus proche de notre version 2, avec du code que l'on peut vraiment lire.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://github.com/rapidsai/cugraph-gnn/tree/main/python/cugraph-pyg/cugraph_pyg/examples/fraud">rapidsai/cugraph-gnn, dossier fraud</a></dd></div>
+      <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="apprendre">
+    <header>
+      <h3>IBM Multi-GNN</h3>
+      <span class="etiq v-apprendre">Pour apprendre</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Le code d'IBM qui entraîne plusieurs GNN sur le jeu IBM AML.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Il montre comment charger le jeu IBM AML sous forme de graphe. Utile si nous faisons le contrôle sur HI-Small.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://github.com/IBM/Multi-GNN">IBM/Multi-GNN</a></dd></div>
+      <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="apprendre">
+    <header>
+      <h3>Exemple GNN de Morpheus</h3>
+      <span class="etiq v-apprendre">Pour apprendre</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Un autre exemple NVIDIA qui enchaîne GNN puis XGBoost, livré avec des modèles déjà entraînés.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Lecture seulement. Il utilise une autre bibliothèque de GNN (DGL), pas PyTorch Geometric : le code n'est pas réutilisable chez nous.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://github.com/nv-morpheus/Morpheus/tree/branch-25.06/examples/gnn_fraud_detection_pipeline">nv-morpheus/Morpheus</a></dd></div>
+      <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+  </article>
+
+  <div class="manque"><b>Non trouvé.</b> Aucun tutoriel officiel PyTorch Geometric n'enchaîne un GNN puis XGBoost. Le seul notebook communautaire trouvé n'a pas de licence, et XGBoost seul y bat le GNN.</div>
+</section>
+
+<section id="contexte">
+  <h2>PI-SPI et les arnaques</h2>
+  <p class="intro-section">Les textes et les chiffres qui donnent au projet sa raison d'être. Ils servent surtout au pitch. La synthèse complète est dans <a href="contexte-pispi.md">contexte-pispi.md</a> et <a href="scenarios-fraude.md">scenarios-fraude.md</a>.</p>
+
+  <article class="fiche majeure" data-v="citer">
+    <header>
+      <h3>Avis BCEAO n°0019 du 2 octobre 2026</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Le texte officiel qui rend PI-SPI obligatoire à partir du 2 novembre 2026. Sa phrase clé : « Toutes les transactions de monnaie électronique interopérables, au sein de l'UEMOA, sont obligatoirement réalisées par l'intermédiaire de PI-SPI. »</p>
+        <p>Il vise les transferts de monnaie électronique entre personnes physiques.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est le fait qui ouvre le pitch : depuis trois semaines, tous ces transferts sont instantanés et irrévocables.</p>
+        <p>Trois précautions de langage : c'est un « Avis », pas une « Instruction » ; le texte dit « interopérables » ; les virements de banque à banque ne semblent pas visés (notre lecture).</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://www.bceao.int/fr/reglementations/avis-ndeg0019-relatif-aux-transactions-de-monnaie-electronique-entre-personnes">page de l'avis</a>, <a href="https://www.bceao.int/sites/default/files/2026-10/Communiqu%C3%A9%20du%202%20octobre%202026.pdf">communiqué du même jour</a></dd></div>
+      <div><dt>Réserve</dt><dd>PDF scannés, lus par reconnaissance de caractères</dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>FAQ PI-SPI</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Les questions-réponses du site public de PI-SPI. On y lit : « Une fois confirmée, l'opération d'envoi est irrévocable. Il n'est plus possible pour l'établissement teneur de votre compte de l'annuler. »</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>La citation exacte sur l'irrévocabilité. La FAQ dit aussi que l'application affiche déjà le nom, le prénom et le pays du destinataire : Sentinelle ne doit donc pas se présenter comme une vérification du nom, mais comme une vérification du comportement du compte.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://pispi.bceao.int/foire-aux-questions?field_categorie_faq_target_id=5">FAQ, rubrique Transferts</a></dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Portail développeurs PI-SPI</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>La documentation technique de PI-SPI. Elle décrit les messages échangés (norme ISO 20022), le temps maximum de traitement de 20 secondes, et la « demande d'annulation », qui n'a d'effet que si le destinataire l'accepte.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Elle nous dit où placer Sentinelle : chez l'établissement de l'expéditeur, entre la recherche du destinataire et l'envoi du transfert. Elle montre aussi qu'après coup, la victime dépend de la bonne volonté de l'escroc.</p>
+        <p>Les spécifications détaillées ne sont pas publiques, et aucun champ n'est prévu pour un score de risque.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://developer.pispi.bceao.int/guides/vue-ensemble">vue d'ensemble</a>, <a href="https://developer.pispi.bceao.int/guides/retour-overview">retours et annulations</a></dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Instruction BCEAO n°001-01-2024</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Le texte qui fixe les obligations des prestataires de paiement dans l'UEMOA.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>L'article 83 demande aux prestataires « des outils de prévention appropriés » contre la fraude. C'est notre accroche réglementaire : la prévention est déjà à leur charge (notre lecture).</p>
+        <p>L'article 69 impose le remboursement des opérations non autorisées. Dans une arnaque par manipulation, la victime valide elle-même : ce remboursement ne s'applique pas automatiquement (notre lecture, pas une position de la BCEAO).</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://www.bceao.int/sites/default/files/inline-files/Instruction-No001-01-2024_relative_aux_services_de_paiement_dans_l-UMOA.pdf">PDF sur bceao.int</a></dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Rapport BCEAO 2024 sur les services financiers numériques</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Le rapport annuel de la BCEAO sur la monnaie électronique dans l'UEMOA, publié en mars 2026.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Les chiffres de marché du pitch, et le montant moyen d'un transfert, qui sert de repère pour régler nos scénarios.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://www.bceao.int/sites/default/files/2026-03/Rapport%20annuel%20sur%20les%20services%20financiers%20num%C3%A9riques%20dans%20l'UEMOA%20-%202024.pdf">PDF sur bceao.int</a></dd></div>
+    </dl>
+    <details>
+      <summary>Les chiffres de 2024</summary>
+      <div class="defile">
+      <table>
+        <thead><tr><th>Indicateur</th><th>Valeur 2024</th></tr></thead>
+        <tbody>
+          <tr><td>Comptes de monnaie électronique ouverts</td><td class="nb">248,7 millions</td></tr>
+          <tr><td>Comptes actifs</td><td class="nb">76,9 millions</td></tr>
+          <tr><td>Comptes ouverts au Bénin</td><td class="nb">37,5 millions</td></tr>
+          <tr><td>Transactions</td><td>11,9 milliards, pour 160 415 milliards FCFA</td></tr>
+          <tr><td>Transferts de personne à personne</td><td>2,35 milliards, pour 42 763 milliards FCFA</td></tr>
+          <tr><td>Montant moyen d'un transfert</td><td class="nb">18 220 FCFA</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Sur PI-SPI lui-même : 175 participants autorisés au 30 septembre 2026, dont 18 au Bénin, et plus de 38 millions de personnes « ayant accès » au service (ce ne sont pas des utilisateurs actifs).</p>
+    </details>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Alertes du CNIN et affaires jugées au Bénin</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Des articles de presse béninois qui rapportent les alertes officielles et les procès : le faux agent d'opérateur (alerte de novembre 2026), le « transfert par erreur », les relais de retrait, les saisies de cartes SIM.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Nos cinq scénarios d'arnaque partent de ces cas réels. Le déroulé côté victime est documenté. Ce qui se passe ensuite (nombre de mules, délais de retrait) est notre hypothèse, à annoncer comme telle.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://linvestigateur.info/benin-le-cnin-alerte-sur-une-nouvelle-arnaque-au-mobile-money/">alerte de novembre 2026</a> ; toutes les autres sources sont dans <a href="scenarios-fraude.md">scenarios-fraude.md</a></dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Typologie GSMA et enquêtes CGAP</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>La GSMA (association des opérateurs mobiles) classe les fraudes au mobile money et décrit le rôle des mules. Le CGAP a mesuré la part des usagers exposés à une tentative de fraude.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>La GSMA donne le vocabulaire de référence. Le CGAP donne le seul chiffre d'ampleur fiable : 43 % des usagers au Sénégal et 28 % en Côte d'Ivoire ont subi au moins une tentative en douze mois. Le Bénin n'a pas été enquêté.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://www.gsma.com/solutions-and-impact/connectivity-for-good/mobile-for-development/wp-content/uploads/2024/05/Mobile-Money-Fraud-Typologies-and-Mitigation-Strategies-20.05.24.pdf">GSMA, mai 2024</a>, <a href="https://www.cgap.org/blog/surveys-reveal-path-to-responsible-digital-finance-in-waemu">CGAP, juin 2024</a></dd></div>
+    </dl>
+  </article>
+
+  <h3>Les cinq scénarios tirés de ces sources</h3>
+  <div class="defile">
+  <table>
+    <thead><tr><th>Scénario</th><th>Ce qui se passe</th><th>Ce qu'il exerce dans le modèle</th></tr></thead>
+    <tbody>
+      <tr><td>1. Transfert par erreur</td><td>Un faux SMS de dépôt, puis la victime « rembourse » elle-même.</td><td>Compte récent, premier contact, fonds ressortis en minutes. C'est le scénario de la démo.</td></tr>
+      <tr><td>2. Faux agent</td><td>L'escroc obtient le code et vide le compte en plusieurs transferts.</td><td>Rafale de transferts depuis un compte calme.</td></tr>
+      <tr><td>3. Compte collecteur</td><td>Une même mule reçoit l'argent de plusieurs victimes.</td><td>Nombre d'expéditeurs nouveaux en peu de temps.</td></tr>
+      <tr><td>4. Chaîne de mules</td><td>L'argent traverse deux ou trois comptes avant le retrait.</td><td>Lien avec un compte déjà signalé. Justifie le GNN.</td></tr>
+      <tr><td>5. Point de vente vidé</td><td>Petit dépôt d'amorce, puis gros transfert depuis le compte d'un agent.</td><td>Sortie inhabituelle pour un agent. Premier scénario à couper.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Des cas légitimes sont injectés aussi (tontine, petit commerçant, étudiant, vraie erreur), pour que le modèle n'apprenne pas que « beaucoup d'expéditeurs » veut toujours dire fraude.</p>
+
+  <div class="manque"><b>Non trouvé.</b> Aucun chiffre public n'isole la fraude au mobile money au Bénin ou dans l'UEMOA. Aucune statistique de fraude sur PI-SPI. Aucune source ne chiffre le délai entre une arnaque et le retrait en espèces.</div>
+</section>
+
+<section id="partenaires">
+  <h2>L'événement et les partenaires</h2>
+  <p class="intro-section">Ce que les sources publiques disent du GPU Challenge et des entreprises citées dans le brief.</p>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Next Fintech Forum 2026 et Fintech Academia</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Le forum a lieu les 26 et 27 novembre au Sofitel de Cotonou. Fintech Academia occupe la journée du 25 novembre, dans un lieu partenaire non nommé, avec un « pitch d'étudiants devant un jury professionnel ». Le GPU Challenge y est intégré, coorganisé par l'Alliance Fintech UEMOA, Epitech et Udu Technologies.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est notre calendrier. Le programme officiel place les pitchs le 25, alors que nos dates sont les 25 et 26. Si le pitch final a lieu le 25, tout le jour 2 de la roadmap disparaît. À confirmer avec les organisateurs.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://nextfintechforum.com/programme">programme du forum</a>, <a href="https://fr.linkedin.com/posts/alliance-fintech-uemoa_nff2026-epitech-strategicpartner-activity-7525320467331563520-wvMe">annonce de l'Alliance</a></dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Udu Technologies et AGH Cloud</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Une entreprise d'infrastructure pour l'IA, avec des bureaux au Texas et à Lagos. Son produit AGH Cloud loue des GPU et distribue des crédits GPU pour des challenges.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>C'est très probablement le fournisseur des GPU du hackathon. D'autres programmes d'Udu donnent des heures de RTX 5090, mais rien ne dit que ce sera notre cas. Dans le pitch : Udu fournit le calcul pour l'entraînement, puis l'hébergement du service.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://udutech.co/">udutech.co</a>, <a href="https://aghcloud.ai/">aghcloud.ai</a></dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="citer">
+    <header>
+      <h3>Payfonte</h3>
+      <span class="etiq v-citer">À citer</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Une plateforme qui permet à une entreprise d'encaisser et de verser de l'argent par plusieurs moyens de paiement. Au Bénin : MTN MoMo et Moov. Un bac à sable de test existe.</p>
+        <p>Avant chaque versement, Payfonte peut appeler une adresse du marchand et ne continue que si la réponse est positive.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Ce mode d'autorisation est notre point de branchement : le marchand y place un service qui interroge Sentinelle sur le compte bénéficiaire. Rien à modifier côté Payfonte. Contrainte : si notre service ne répond pas, le versement est bloqué.</p>
+        <p>Deux prudences. Aucune source publique ne lie Payfonte au GPU Challenge, seulement au forum. Et les arnaques entre particuliers ne passent pas par Payfonte : le cas d'usage honnête est le contrôle du bénéficiaire avant un versement.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://docs.payfonte.com/llms.txt">documentation</a>, <a href="https://docs.payfonte.com/en/guides/disbursements/authorization-mode.md">mode d'autorisation</a></dd></div>
+    </dl>
+  </article>
+</section>
+
+<section id="machines">
+  <h2>Machines et versions</h2>
+  <p class="intro-section">Où faire tourner quoi, et quelles versions installer pour que tout fonctionne ensemble.</p>
+
+  <h3>Ce qui tourne où</h3>
+  <div class="defile">
+  <table>
+    <thead><tr><th>Tâche</th><th>Ordinateur actuel, sans GPU</th><th>Kaggle ou Colab gratuit</th><th>GPU du hackathon</th></tr></thead>
+    <tbody>
+      <tr><td>Explorer PaySim, écrire les signaux en pandas</td><td>Oui</td><td>Oui</td><td>Pas nécessaire</td></tr>
+      <tr><td>Injecter les scénarios</td><td>Oui</td><td>Oui</td><td>Pas nécessaire</td></tr>
+      <tr><td>Entraîner XGBoost sur processeur</td><td>Oui, estimé à quelques minutes, non mesuré</td><td>Oui</td><td>Pas nécessaire</td></tr>
+      <tr><td>Entraîner XGBoost sur GPU</td><td>Non</td><td>Oui, sur T4</td><td>Oui</td></tr>
+      <tr><td>Accélérer la préparation avec cuDF</td><td>Non</td><td>Oui, cuDF est préinstallé</td><td>Oui</td></tr>
+      <tr><td>Service FastAPI et démo Streamlit</td><td>Oui</td><td>Pas adapté</td><td>Oui</td></tr>
+      <tr><td>GNN sur un petit graphe</td><td>Oui, lentement</td><td>Oui</td><td>Oui</td></tr>
+      <tr><td>GNN sur le graphe complet</td><td>Non</td><td>Peut-être</td><td>Oui</td></tr>
+      <tr><td>Mesure du gain processeur contre GPU</td><td>Non</td><td>Oui, première mesure</td><td>Mesure finale</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Les GPU gratuits pour s'entraîner avant le hackathon</h3>
+
+  <article class="fiche" data-v="utilise">
+    <header>
+      <h3>Kaggle Notebooks</h3>
+      <span class="etiq v-utilise">Utilisé</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Des notebooks dans le navigateur avec 30 heures de GPU gratuites par semaine : deux T4 ou un P100, 29 Go de mémoire, sessions de 12 heures.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Notre terrain de répétition : le quota est écrit noir sur blanc et PaySim y est déjà hébergé. C'est là que nous validons les versions et faisons le premier chronométrage. Choisir le T4 : le P100 n'est plus supporté par RAPIDS.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Lien</dt><dd><a href="https://www.kaggle.com/docs/efficient-gpu-usage">documentation Kaggle</a></dd></div>
+    </dl>
+  </article>
+
+  <article class="fiche" data-v="examiner">
+    <header>
+      <h3>Google Colab, Lightning AI, Modal</h3>
+      <span class="etiq v-examiner">En secours</span>
+      <span class="etiq p-preuve">Lu</span>
+    </header>
+    <div class="deux">
+      <div>
+        <h4>C'est quoi ?</h4>
+        <p>Trois autres services avec du GPU gratuit. Colab : cuDF préinstallé, mais Google ne publie ni les limites ni le type de GPU. Lightning AI : jusqu'à 50 heures gratuites, avec un redémarrage toutes les 4 heures. Modal : 30 dollars de crédit par mois, mais il faut écrire du code spécifique.</p>
+      </div>
+      <div>
+        <h4>Intérêt pour Sentinelle</h4>
+        <p>Des solutions de repli si le quota Kaggle est épuisé. Hugging Face Spaces n'est plus une option pour héberger la démo Streamlit gratuitement : il faut un abonnement payant.</p>
+      </div>
+    </div>
+    <dl class="pratique">
+      <div><dt>Liens</dt><dd><a href="https://research.google.com/colaboratory/faq.html">Colab</a>, <a href="https://lightning.ai/pricing">Lightning AI</a>, <a href="https://modal.com/pricing">Modal</a></dd></div>
+    </dl>
+  </article>
+
+  <h3>Les versions à installer</h3>
+  <p>Versions lues sur PyPI et sur les pages officielles le 19 novembre 2026. Utiliser Python 3.12 dans un environnement isolé : c'est la plus petite version acceptée par tous les paquets.</p>
+  <div class="defile">
+  <table>
+    <thead><tr><th>Paquet</th><th>Version</th><th>À quoi il sert chez nous</th></tr></thead>
+    <tbody>
+      <tr><td>RAPIDS (cuDF, cuML, cuGraph)</td><td class="nb">26.10</td><td>Préparer les données sur GPU</td></tr>
+      <tr><td>XGBoost</td><td class="nb">3.4.1</td><td>Le modèle de la version 1</td></tr>
+      <tr><td>PyTorch</td><td class="nb">2.15.0</td><td>Le moteur de calcul du GNN</td></tr>
+      <tr><td>PyTorch Geometric</td><td class="nb">2.8.1</td><td>Le GNN de la version 2</td></tr>
+      <tr><td>SHAP</td><td class="nb">0.54.1</td><td>Expliquer un score</td></tr>
+      <tr><td>scikit-learn</td><td class="nb">1.9.1</td><td>Découpage des données et mesures</td></tr>
+      <tr><td>FastAPI</td><td class="nb">0.165.0</td><td>Le service de score</td></tr>
+      <tr><td>Streamlit</td><td class="nb">1.67.0</td><td>L'écran de démo</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Sur place, la commande <code>nvidia-smi</code> affiche la version du pilote NVIDIA. Elle décide du jeu de commandes à utiliser.</p>
+
+  <details>
+    <summary>Jeu A : pilote 580 ou plus récent (CUDA 13)</summary>
+<pre><code>pip install --extra-index-url=https://pypi.nvidia.com "cudf-cu13==26.10.*" "cuml-cu13==26.10.*" "cugraph-cu13==26.10.*"
+pip install torch==2.15.0 torch_geometric==2.8.1
+pip install xgboost==3.4.1 shap==0.54.1 scikit-learn==1.9.1 fastapi==0.165.0 uvicorn streamlit==1.67.0</code></pre>
+  </details>
+  <details>
+    <summary>Jeu B : pilote entre 535 et 579 (CUDA 12)</summary>
+<pre><code>pip install --extra-index-url=https://pypi.nvidia.com "cudf-cu12==26.10.*" "cuml-cu12==26.10.*" "cugraph-cu12==26.10.*"
+pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cu126
+pip install torch_geometric==2.8.1
+pip install xgboost-cu12==3.4.1 shap==0.54.1 scikit-learn==1.9.1 fastapi==0.165.0 uvicorn streamlit==1.67.0</code></pre>
+  </details>
+
+  <div class="alerte">
+    <p><b>Aucun des deux jeux n'a été installé.</b> Ils sont assemblés à partir des contraintes déclarées par chaque paquet. Il faut les valider une fois sur Kaggle avant le hackathon.</p>
+  </div>
+
+  <details>
+    <summary>Conflits connus et poids des téléchargements</summary>
+    <ul>
+      <li>cuDF 26.10 impose pandas 3.0.x et numpy entre 2.0 et 2.4. Développer dès maintenant avec ces versions.</li>
+      <li>Ne jamais installer <code>torch_geometric[full]</code> : cette variante exige une version de numba incompatible avec cuDF.</li>
+      <li>Le paquet <code>xgboost</code> par défaut est compilé pour CUDA 13. Sur un pilote plus ancien, il faut <code>xgboost-cu12</code>.</li>
+      <li>Jeu B : un conflit entre PyTorch et RAPIDS est plausible, non confirmé. Repli : deux environnements séparés qui s'échangent des fichiers Parquet.</li>
+      <li>Avec PyTorch 2.15, les extensions compilées de PyTorch Geometric n'existent pas encore. La bibliothèque de base suffit pour GraphSAGE.</li>
+      <li>Les images Docker RAPIDS pèsent 4,16 Go (CUDA 13) et 5,93 Go (CUDA 12), et ne contiennent ni PyTorch, ni PyTorch Geometric, ni XGBoost.</li>
+      <li>À 10 Mbit/s, une installation complète prend environ une heure. Elle ne doit pas dépendre du réseau de la salle : d'où le kit hors ligne prévu dans la roadmap.</li>
+    </ul>
+  </details>
+</section>
+
+<section id="dossier">
+  <h2>Les fichiers du dossier</h2>
+  <p class="intro-section">Ce que contient chaque fichier, et à quel moment l'ouvrir. Les fichiers de <code>docs/</code> sont des synthèses courtes. Ceux de <code>research_notes/</code> sont les notes brutes, bien plus longues, avec chaque citation et son adresse.</p>
+
+  <h3>À la racine</h3>
+  <div class="docs">
+    <div class="doc">
+      <h4><a href="../README.md">README.md</a></h4>
+      <p>La porte d'entrée : le projet en dix lignes, la liste des fichiers et les commandes pour démarrer.</p>
+      <p class="quand">À lire en premier par un nouveau membre.</p>
+    </div>
+    <div class="doc">
+      <h4><a href="../scripts/telecharger_donnees.sh">scripts/telecharger_donnees.sh</a></h4>
+      <p>Télécharge PaySim, IBM AML HI-Small et les deux MoMTSim dans <code>data/</code>. Reprend un téléchargement coupé. Son en-tête explique comment configurer un jeton Kaggle.</p>
+      <p class="quand">À lancer une fois par ordinateur.</p>
+    </div>
+  </div>
+
+  <h3>Le dossier docs/</h3>
+  <div class="docs">
+    <div class="doc">
+      <h4><a href="ressources.md">ressources.md</a></h4>
+      <p>Le tableau de référence de toutes les ressources : lien, contenu, licence, taille, accès, niveau de preuve.</p>
+      <ul>
+        <li>Mesures et pièges de PaySim</li>
+        <li>Verdict sur le blueprint NVIDIA</li>
+        <li>Versions compatibles et commandes d'installation</li>
+        <li>Sept questions à poser aux organisateurs</li>
+      </ul>
+      <p class="quand">Ce guide en est la version expliquée. Y revenir pour un détail précis.</p>
+    </div>
+    <div class="doc">
+      <h4><a href="contexte-pispi.md">contexte-pispi.md</a></h4>
+      <p>PI-SPI en huit parties, avec la source de chaque phrase.</p>
+      <ul>
+        <li>La règle du 2 novembre 2026, mot pour mot</li>
+        <li>Irrévocabilité et recours de la victime</li>
+        <li>Ce que la BCEAO impose déjà contre la fraude</li>
+        <li>Où placer Sentinelle dans les messages</li>
+        <li>La liste « à ne pas dire devant le jury »</li>
+      </ul>
+      <p class="quand">À lire par celui ou celle qui prépare le pitch.</p>
+    </div>
+    <div class="doc">
+      <h4><a href="scenarios-fraude.md">scenarios-fraude.md</a></h4>
+      <p>Les cinq scénarios d'arnaque, chacun avec ses sources, sa suite de transactions minute par minute, ses réglages à faire varier et les signaux attendus.</p>
+      <ul>
+        <li>Quatre cas légitimes à injecter aussi</li>
+        <li>Ce que les scénarios ne couvrent pas</li>
+        <li>Les chiffres d'ampleur utilisables</li>
+      </ul>
+      <p class="quand">À lire avant d'écrire le générateur de scénarios.</p>
+    </div>
+    <div class="doc">
+      <h4><a href="roadmap-proposition.md">roadmap-proposition.md</a></h4>
+      <p>Une proposition, pas encore validée par l'équipe.</p>
+      <ul>
+        <li>Trois décisions à prendre : données, place du GPU, calendrier</li>
+        <li>Quatre rôles : Données, Modèle, Service, Démo</li>
+        <li>13 tâches de préparation, 8 au jour 1, 6 au jour 2</li>
+        <li>L'ordre de ce qu'on coupe si le temps manque</li>
+        <li>Les risques qui menacent la démo</li>
+      </ul>
+      <p class="quand">À discuter ensemble avant d'écrire du code de modèle.</p>
+    </div>
+  </div>
+
+  <h3>Le dossier research_notes/</h3>
+  <p>Cinq fichiers dans <code>research_notes/Sentinelle ressources GPU Challenge/</code>. Chaque partie suit le même plan : l'essentiel, les faits cités avec leur source, nos déductions, puis ce qui n'a pas été trouvé. Deux fichiers sont rédigés en anglais.</p>
+  <div class="docs">
+    <div class="doc">
+      <h4>donnees.md</h4>
+      <p>Tout sur les jeux de données : PaySim, IBM AML, AMLSim, les autres jeux examinés, et les commandes exactes de téléchargement avec ou sans compte.</p>
+      <p class="quand">En français. À ouvrir pour vérifier une licence, une taille ou une colonne.</p>
+    </div>
+    <div class="doc">
+      <h4>code_reference.md</h4>
+      <p>Le blueprint NVIDIA en détail, les autres ressources NVIDIA, les exemples PyTorch Geometric qui existent vraiment, XGBoost sur GPU avec RAPIDS et SHAP.</p>
+      <p class="quand">En anglais. À ouvrir au moment d'écrire le modèle.</p>
+    </div>
+    <div class="doc">
+      <h4>pispi_bceao.md</h4>
+      <p>PI-SPI en sept parties : présentation, règle du 2 novembre, irrévocabilité, recours, consignes de sécurité, format des messages, statistiques. Avec les citations exactes des textes.</p>
+      <p class="quand">En français. À ouvrir si un juré conteste une phrase du pitch.</p>
+    </div>
+    <div class="doc">
+      <h4>arnaques_partenaires.md</h4>
+      <p>Les arnaques documentées pas à pas, les chiffres d'ampleur, la façon dont les comptes mules sont obtenus, puis le GPU Challenge, Payfonte, Udu Technologies et l'Alliance Fintech UEMOA.</p>
+      <p class="quand">En français. À ouvrir pour enrichir un scénario ou préparer une question sur un partenaire.</p>
+    </div>
+    <div class="doc">
+      <h4>faisabilite_versions.md</h4>
+      <p>Les versions et leurs exigences, les commandes d'installation, les GPU gratuits et leurs limites, le code portable entre processeur et GPU, le déploiement quand l'environnement est inconnu, le choix de Python.</p>
+      <p class="quand">En anglais. À ouvrir quand une installation échoue.</p>
+    </div>
+  </div>
+</section>
+
+<section id="trous">
+  <h2>Ce qui manque encore</h2>
+  <p class="intro-section">Ce que la recherche n'a pas pu établir. Mieux vaut le savoir avant le jury.</p>
+
+  <h3>Pas encore vérifié par nous</h3>
+  <ul>
+    <li>Aucune installation n'a été testée : les jeux de versions A et B sont cohérents sur le papier seulement.</li>
+    <li>IBM AML HI-Small et MoMTSim-TZ n'ont pas été téléchargés en entier. Seuls les liens ont été testés.</li>
+    <li>Les colonnes de MoMTSim-TZ n'ont pas été ouvertes : nous ne savons pas encore si ses comptes mules se répètent.</li>
+    <li>Le temps d'entraînement de XGBoost sans GPU (« quelques minutes ») est une estimation, pas une mesure.</li>
+  </ul>
+
+  <h3>Introuvable dans les sources publiques</h3>
+  <ul>
+    <li>Le type de GPU du hackathon, le quota par équipe, le règlement et les critères du jury.</li>
+    <li>Un lien public entre Payfonte et le GPU Challenge.</li>
+    <li>Un chiffre de fraude au mobile money pour le Bénin ou l'UEMOA, ou pour PI-SPI.</li>
+    <li>Les spécifications détaillées des messages PI-SPI.</li>
+    <li>Un jeu de données réel ou ouest-africain.</li>
+  </ul>
+
+  <h3>Les sept questions à envoyer aux organisateurs</h3>
+  <ol>
+    <li>Quel GPU, avec combien de mémoire, et combien d'heures par équipe ?</li>
+    <li>Accès par notebook dans le navigateur, par SSH, ou sur une machine dans la salle ?</li>
+    <li>Quelle version du pilote NVIDIA ? Docker est-il disponible, avec les droits nécessaires ?</li>
+    <li>Quel débit Internet dans la salle ?</li>
+    <li>Le code écrit avant le hackathon est-il autorisé ?</li>
+    <li>Quand a lieu le pitch final, combien de temps dure-t-il, et quels sont les critères du jury ?</li>
+    <li>Le programme officiel place Fintech Academia le 25 novembre. Que se passe-t-il le 26 ?</li>
+  </ol>
+</section>
+
+<footer>
+  <p>Équipe ImpactBoyz, GPU Challenge 2026. Guide rédigé le 20 novembre 2026 à partir de la recherche du 19 novembre. Aucun lien ni chiffre de cette page n'est inventé : chacun vient des fichiers du dossier, où sa source est indiquée.</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function () {
+  var boutons = document.querySelectorAll('.filtres button');
+  var fiches = document.querySelectorAll('.fiche');
+  var compte = document.getElementById('compte');
+  function appliquer(filtre) {
+    var visibles = 0;
+    fiches.forEach(function (f) {
+      var montrer = filtre === 'tout' || f.dataset.v === filtre;
+      f.hidden = !montrer;
+      if (montrer) visibles++;
+    });
+    boutons.forEach(function (b) {
+      b.setAttribute('aria-pressed', b.dataset.filtre === filtre ? 'true' : 'false');
+    });
+    compte.textContent = visibles + ' fiches affichées sur ' + fiches.length + '.';
+  }
+  boutons.forEach(function (b) {
+    b.addEventListener('click', function () { appliquer(b.dataset.filtre); });
+  });
+  appliquer('tout');
+})();
+</script>
+</body>
+</html>
