@@ -76,10 +76,10 @@ vierge n'en a pas encore.
 
 | Scénario injecté | Ce qui se passe |
 |---|---|
-| S1 — Transfert par erreur | « Je me suis trompé de numéro, renvoyez-moi l'argent » |
-| S2 — Faux agent | Un faux service client obtient un transfert ou un code |
-| S3 — Compte collecteur | Un compte reçoit de nombreuses victimes et vide aussitôt |
-| S4 — Chaîne de mules | L'argent rebondit de compte en compte avant le retrait |
+| S1 : Transfert par erreur | « Je me suis trompé de numéro, renvoyez-moi l'argent » |
+| S2 : Faux agent | Un faux service client obtient un transfert ou un code |
+| S3 : Compte collecteur | Un compte reçoit de nombreuses victimes et vide aussitôt |
+| S4 : Chaîne de mules | L'argent rebondit de compte en compte avant le retrait |
 
 ## Démarrer
 
