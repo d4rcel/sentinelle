@@ -418,22 +418,16 @@ function afficherBilan() {
   const lignes = [];
   for (let i = n - 1; i >= 0 && lignes.length < 7; i--) { const z = zone(i); if (z !== "passe") lignes.push(ligneFil(i, z)); }
   $("fil").innerHTML = lignes.length
-    ? "<table><thead><tr><th>Décision</th><th>Transaction</th><th>Quand</th><th>Destinataire</th><th class='droite'>Montant</th><th class='droite'>Score</th><th>Raison principale</th></tr></thead><tbody>" + lignes.join("") + "</tbody></table>"
+    ? "<table><thead><tr><th>Décision</th><th>Transaction</th><th>Quand</th><th>Destinataire</th><th class='droite'>Montant</th><th class='droite'>Score</th></tr></thead><tbody>" + lignes.join("") + "</tbody></table>"
     : "<p class='vide'>Aucune alerte pour l'instant. Lancez le flux.</p>";
   const attente = cas().filter((c) => !dossiers.has(c.i)).length;
   $("pastille").hidden = attente === 0; $("pastille").textContent = attente;
   if (!$("vue-risque").hidden) afficherRisque();
 }
-function raisonDe(i) {
-  const x = T[i];
-  if (surveilles.has(x.dst) && i > surveilles.get(x.dst)) return "compte placé sous surveillance par la conformité";
-  if (zone(i) === "passe") return "transaction envoyée à la main, passée sans blocage";
-  return x.raisons[0] || "score supérieur au seuil de l'établissement";
-}
 function ligneFil(i, z) {
   const x = T[i];
   return "<tr><td><span class='puce " + z + "'>" + LIBELLE[z] + "</span></td><td class='nb'>" + transaction(i) + "</td><td class='nb'>" + heure(x.t) + "</td><td>" + esc(compte(x.dst)) +
-    "</td><td class='droite'>" + nombre(x.montant) + "</td><td class='droite'>" + score2(x.score) + "</td><td>" + esc(raisonDe(i)) + "</td></tr>";
+    "</td><td class='droite'>" + nombre(x.montant) + "</td><td class='droite'>" + score2(x.score) + "</td></tr>";
 }
 
 // ---------------------------------------------------------------------------- la scène animée
@@ -526,7 +520,7 @@ function afficherRisque() {
                    : "<span class='puce " + c.z + "'>" + LIBELLE[c.z] + "</span>";
     return "<button class='cas' data-i='" + c.i + "' aria-current='" + (c.i === choisi) + "'>" + puce +
       "<span class='qui'>" + transaction(c.i) + "</span><span class='score'>" + score2(x.score) + "<small>" + nombre(x.montant) + "</small></span>" +
-      "<span class='quoi'>" + esc(raisonDe(c.i)) + "</span></button>";
+      "<span class='quoi'>" + heure(x.t) + ", vers " + esc(compte(x.dst)) + "</span></button>";
   }).join("") : "<p class='vide'>" + (filtre === "attente" ? "Rien à traiter. Lancez le flux ou envoyez une transaction." : "Aucun dossier.") + "</p>";
   $("fiche").innerHTML = choisi === null ? "<p class='vide'>Sélectionnez une alerte.</p>" : fiche(choisi, true);
 }
