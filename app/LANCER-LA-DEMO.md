@@ -67,16 +67,16 @@ pour elle seule). Elle s'adresse à un établissement : banque, opérateur, pres
 
 | Vue | Ce qu'elle montre |
 |---|---|
-| Flux en direct | Les 7 432 transferts du flux traversent Sentinelle. Chacun passe, voit son expéditeur averti, ou est bloqué avant l'envoi. Deux curseurs règlent les seuils de l'établissement et reclassent aussitôt le trafic : arnaques arrêtées d'un côté, clients honnêtes gênés de l'autre. |
-| Risque et conformité | La file des décisions automatiques. L'analyste confirme la fraude (le compte passe sous surveillance, ses prochains transferts sont bloqués), déclare une fausse alerte (le compte est déclaré de confiance), ou ouvre une analyse approfondie (ticket interne). |
-| Transaction unique | Saisir un transfert et obtenir son score, ses raisons et la décision qui en découle. |
+| Flux en direct | Les 7 432 transferts du flux traversent Sentinelle. Chacun passe ou est bloqué avant l'envoi. Un curseur règle le seuil de blocage de l'établissement et reclasse aussitôt le trafic : arnaques arrêtées d'un côté, clients honnêtes bloqués à tort de l'autre. |
+| Risque et conformité | La file des transferts bloqués et des transactions envoyées à la main. L'analyste confirme la fraude (le compte passe sous surveillance, ses prochains transferts sont bloqués), déclare une fausse alerte (le compte est déclaré de confiance), ou ouvre une analyse approfondie (ticket interne). |
+| Transaction unique | Choisir une transaction préparée dans une liste (les champs se remplissent), ou saisir la sienne, puis l'envoyer. Elle est notée et transmise à la file du département risque. |
 
-Déroulé conseillé en deux minutes : lancer le flux en vitesse « Rapide », passer du réglage « Mesuré » au
-réglage « Strict » pour montrer le prix d'un seuil trop bas, ouvrir « Risque et conformité », confirmer une
-fraude, libérer une fausse alerte, puis noter une transaction vers le compte le plus signalé.
+Déroulé conseillé en deux minutes : lancer le flux en vitesse « Rapide », passer de « Recommandé » à
+« Bloquer tôt » pour montrer le prix d'un seuil trop bas, ouvrir « Risque et conformité », confirmer une
+fraude, libérer une fausse alerte, puis envoyer une transaction préparée.
 
 À dire : la décision automatique tombe avant l'envoi, parce qu'un transfert confirmé est irrévocable. L'analyste
-intervient ensuite. Les seuils, les tickets et les listes de surveillance et de confiance vivent dans le
+intervient ensuite. Le seuil, les tickets et les listes de surveillance et de confiance vivent dans le
 navigateur : rien n'est relié à un outil interne réel. Les montants suivent PaySim, pas le franc CFA.
 
 ## L'écran de démo
