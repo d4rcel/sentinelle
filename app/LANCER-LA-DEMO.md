@@ -75,6 +75,11 @@ Déroulé conseillé en deux minutes : lancer le flux en vitesse « Rapide », p
 « Bloquer tôt » pour montrer le prix d'un seuil trop bas, ouvrir « Risque et conformité », confirmer une
 fraude, libérer une fausse alerte, puis envoyer une transaction préparée.
 
+Présentation sur deux fenêtres : ouvrir http://127.0.0.1:8000/demo#flux d'un côté et
+http://127.0.0.1:8000/demo#risque de l'autre, dans le même navigateur. Les fenêtres partagent leur état :
+un transfert bloqué à gauche apparaît aussitôt dans la file à droite, et une décision de l'analyste est
+prise en compte par le flux.
+
 À dire : la décision automatique tombe avant l'envoi, parce qu'un transfert confirmé est irrévocable. L'analyste
 intervient ensuite. Le seuil, les tickets et les listes de surveillance et de confiance vivent dans le
 navigateur : rien n'est relié à un outil interne réel. Les montants suivent PaySim, pas le franc CFA.

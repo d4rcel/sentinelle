@@ -192,9 +192,14 @@ footer { max-width: 96rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2.5rem) 2
 footer p { margin: 0.25rem 0; max-width: 100ch; }
 .erreur { background: var(--bloque-fond); color: var(--bloque); padding: 1rem 1.25rem; border-radius: 12px; font-weight: 600; }
 
-@media (max-width: 62rem) {
-  .deux, .atelier, .saisie, .bilan { grid-template-columns: 1fr; }
+@media (max-width: 44rem) {
+  .atelier { grid-template-columns: 1fr; }
   .file { max-height: 22rem; }
+}
+@media (max-width: 62rem) {
+  .atelier { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 0.9rem; }
+  .entete .compteurs { gap: 1.1rem; }
+  .deux, .saisie, .bilan { grid-template-columns: 1fr; }
   .seuil { grid-template-columns: 1fr 3.2rem; } .seuil label { grid-column: 1 / -1; }
   .horloge { display: none; }
   .repere b { font-size: 1.25rem; }
@@ -359,6 +364,28 @@ const dossiers = new Map();     // rang du transfert -> { statut: "fraude" | "li
 let filtre = "attente", choisi = null, numeroTicket = 2611;
 const mouvementReduit = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// Plusieurs fenêtres de la console (flux d'un côté, risque de l'autre) partagent le même état.
+const canal = "BroadcastChannel" in window ? new BroadcastChannel("sentinelle-console") : null;
+function publier(extra) {
+  if (canal) canal.postMessage(Object.assign({ n, seuil: seuils.bloquer, saisies: T.slice(nFlux), dossiers: [...dossiers],
+    surveilles: [...surveilles], confiance: [...confiance], ticket: numeroTicket }, extra || {}));
+}
+function recevoir(m) {
+  if (m.demande) { if (n > 0 || T.length > nFlux || dossiers.size) publier(); return; }
+  const avant = n;
+  if (m.debut) { n = 0; reste = 0; particules = []; lecture = false; choisi = null; $("b-lecture").disabled = false; $("b-lecture").textContent = "Lancer le flux"; }
+  else n = Math.max(n, m.n);
+  T.length = nFlux; T.push(...m.saisies);
+  dossiers.clear(); m.dossiers.forEach(([k, v]) => dossiers.set(k, v));
+  surveilles.clear(); m.surveilles.forEach(([k, v]) => surveilles.set(k, v));
+  confiance.clear(); m.confiance.forEach(([k, v]) => confiance.set(k, v));
+  numeroTicket = Math.max(numeroTicket, m.ticket);
+  seuils = { bloquer: m.seuil }; $("r-bloquer").value = m.seuil; $("o-bloquer").textContent = score2(m.seuil);
+  if (!$("vue-flux").hidden) for (let i = Math.max(avant, n - 60); i < n; i++) lancer(i);
+  if (n >= nFlux) arreter();
+  afficherBilan();
+}
+
 // Décision automatique pour le transfert de rang i, selon les seuils et les listes de la conformité.
 function zone(i) {
   const x = T[i];
@@ -478,14 +505,14 @@ function avancer(k) {
   for (let i = n; i < fin; i++) { n = i + 1; lancer(i); }
   if (n >= nFlux) arreter();
 }
-function arreter() { lecture = false; $("b-lecture").textContent = n >= nFlux ? "Flux terminé" : "Reprendre"; $("b-lecture").disabled = n >= nFlux; }
+function arreter() { if (lecture) publier(); lecture = false; $("b-lecture").textContent = n >= nFlux ? "Flux terminé" : "Reprendre"; $("b-lecture").disabled = n >= nFlux; }
 let dernierBilan = 0;
 function image(maintenant) {
   const dt = Math.min(0.1, (maintenant - dernier) / 1000 || 0); dernier = maintenant;
   if (lecture) {
     reste += vitesse * dt; const k = Math.floor(reste); reste -= k;
     if (k) avancer(k);
-    if (maintenant - dernierBilan > 140) { afficherBilan(); dernierBilan = maintenant; }
+    if (maintenant - dernierBilan > 140) { afficherBilan(); publier(); dernierBilan = maintenant; }
   }
   dessiner(dt);
   requestAnimationFrame(image);
@@ -538,15 +565,15 @@ function fiche(i, avecActions) {
     if (d.statut === "libre") h += "<div class='issue libre'><p><b>" + (z === "bloque" ? "Fausse alerte. Le transfert est libéré." : "Rien à signaler.") + "</b> Le compte est déclaré de confiance : ses prochains transferts passeront.</p>" + verite + "</div>";
     if (d.statut === "ticket") h += "<div class='issue ticket'><p><b>Analyse approfondie ouverte.</b> Ticket interne RC-" + d.ticket + ", transmis à l'équipe d'investigation.</p></div>";
   }
+  if (avecActions) h += "<div class='actions' style='margin-bottom:1.1rem'>" + (d
+      ? "<button class='bouton' data-action='annuler'>Annuler cette décision</button>"
+      : "<button class='bouton fraude' data-action='fraude'>Fraude confirmée</button><button class='bouton libre' data-action='libre'>" + (z === "bloque" ? "Fausse alerte, libérer" : "Rien à signaler") +
+        "</button><button class='bouton' data-action='ticket'>Ouvrir une analyse approfondie</button>") + "</div>";
   h += "<div class='jauge'><div class='grand'>" + score2(x.score) + "</div><div>" +
        "<div class='piste' style='--b:" + (100 * seuils.bloquer) + "%;--s:" + (100 * x.score) + "%'><i></i></div>" +
        "<p>" + decision + "</p></div></div>";
   h += "<ul class='faits'><li><b>" + nombre(x.montant) + "</b>montant du transfert</li><li><b>" + esc(compte(x.src)) + "</b>compte expéditeur</li><li><b>" + esc(compte(x.dst)) + "</b>compte destinataire</li>" + faits(x) + "</ul>";
   if (autres) h += "<p class='note' style='margin:0 0 1rem'>" + autres + " autre" + (autres > 1 ? "s transactions concernent" : " transaction concerne") + " ce même compte destinataire. La décision s'appliquera à toutes.</p>";
-  if (avecActions) h += "<div class='actions'>" + (d
-      ? "<button class='bouton' data-action='annuler'>Annuler cette décision</button>"
-      : "<button class='bouton fraude' data-action='fraude'>Fraude confirmée</button><button class='bouton libre' data-action='libre'>" + (z === "bloque" ? "Fausse alerte, libérer" : "Rien à signaler") +
-        "</button><button class='bouton' data-action='ticket'>Ouvrir une analyse approfondie</button>") + "</div>";
   return h;
 }
 function decider(action) {
@@ -559,7 +586,7 @@ function decider(action) {
     if (action === "fraude") surveilles.set(x.dst, Math.max(n, T.length) - 1);
     if (action === "libre") confiance.set(x.dst, Math.max(n, T.length) - 1);
   }
-  afficherBilan(); afficherRisque();
+  afficherBilan(); afficherRisque(); publier();
 }
 
 // ---------------------------------------------------------------------------- transaction unique
@@ -572,6 +599,7 @@ async function noterSaisie(ev) {
     if (!r.ok) throw new Error("le service a répondu " + r.status);
     T.push(await r.json());
     const i = T.length - 1;
+    publier();
     const bloque = zone(i) === "bloque";
     $("resultat").innerHTML = "<div class='panneau'><header style='display:flex;gap:1rem;align-items:center;margin-bottom:.6rem'>" +
       "<h2 style='margin:0 auto 0 0;font-size:1.35rem'>" + transaction(i) + "</h2><span class='puce " + (bloque ? "bloque" : "traite") + "'>" + (bloque ? "Bloquée" : "Envoyée") + "</span></header>" +
@@ -583,6 +611,7 @@ async function noterSaisie(ev) {
 
 // ---------------------------------------------------------------------------- navigation et commandes
 function montrer(vue) {
+  if (location.hash.slice(1) !== vue) history.replaceState(null, "", "#" + vue);     // l'adresse retient la vue ouverte
   for (const v of ["flux", "risque", "unique"]) $("vue-" + v).hidden = v !== vue;
   document.querySelectorAll(".onglets button").forEach((b) => b.setAttribute("aria-selected", b.dataset.vue === vue));
   document.querySelectorAll(".filtres button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.filtre === filtre));
@@ -598,14 +627,14 @@ function reglerSeuil(b) {
 function brancher() {
   document.querySelectorAll(".onglets button").forEach((b) => b.onclick = () => montrer(b.dataset.vue));
   $("b-lecture").onclick = () => { if (n >= nFlux) return; lecture = !lecture; $("b-lecture").textContent = lecture ? "Mettre en pause" : "Reprendre"; };
-  $("b-tout").onclick = () => { avancer(nFlux); particules = []; afficherBilan(); };
+  $("b-tout").onclick = () => { avancer(nFlux); particules = []; afficherBilan(); publier(); };
   $("b-debut").onclick = () => { n = 0; reste = 0; particules = []; lecture = false; dossiers.clear(); surveilles.clear(); confiance.clear(); T.length = nFlux; choisi = null;
-    $("b-lecture").disabled = false; $("b-lecture").textContent = "Lancer le flux"; afficherBilan(); };
+    $("b-lecture").disabled = false; $("b-lecture").textContent = "Lancer le flux"; afficherBilan(); publier({ debut: true }); };
   document.querySelectorAll("[data-vitesse]").forEach((b) => b.onclick = () => { vitesse = Number(b.dataset.vitesse);
     document.querySelectorAll("[data-vitesse]").forEach((c) => c.setAttribute("aria-pressed", c === b)); });
-  $("r-bloquer").oninput = (e) => reglerSeuil(Number(e.target.value));
+  $("r-bloquer").oninput = (e) => { reglerSeuil(Number(e.target.value)); publier(); };
   const REGLAGES = { tot: 0.60, mesure: seuilsMesures.bloquer, tard: 0.95 };
-  document.querySelectorAll("[data-reglage]").forEach((b) => b.onclick = () => reglerSeuil(REGLAGES[b.dataset.reglage]));
+  document.querySelectorAll("[data-reglage]").forEach((b) => b.onclick = () => { reglerSeuil(REGLAGES[b.dataset.reglage]); publier(); });
   document.querySelectorAll(".filtres button").forEach((b) => b.onclick = () => { filtre = b.dataset.filtre; choisi = null; montrer("risque"); });
   $("file").onclick = (e) => { const b = e.target.closest("button.cas"); if (b) { choisi = Number(b.dataset.i); afficherRisque(); } };
   $("fiche").onclick = (e) => { const b = e.target.closest("[data-action]"); if (b) decider(b.dataset.action); };
@@ -640,7 +669,9 @@ function preparees() {
     $("chargement").hidden = true;
     const q = new URLSearchParams(location.search);          // ?n=3000&vue=risque&seuil=0.6 : pour préparer un écran
     if (q.get("n")) n = Math.min(nFlux, Number(q.get("n")) || 0);
-    montrer(q.get("vue") || "flux");
+    const vues = ["flux", "risque", "unique"], demandee = q.get("vue") || location.hash.slice(1);
+    montrer(vues.includes(demandee) ? demandee : "flux");
+    if (canal) { canal.onmessage = (e) => recevoir(e.data); canal.postMessage({ demande: true }); }
     reglerSeuil(Number(q.get("seuil")) || d.seuils.bloquer);
     if (n >= nFlux) arreter();
     if (q.get("lecture")) $("b-lecture").click();
