@@ -322,7 +322,7 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
   <!-- ============================================================== UNIQUE -->
   <section id="vue-unique" hidden>
     <h1>Envoyer une transaction</h1>
-    <p class="intro">Choisissez une transaction préparée, ou saisissez la vôtre. Sentinelle la note avant l'envoi et la transmet au département risque et conformité.</p>
+    <p class="intro">Choisissez une transaction préparée, ou saisissez la vôtre. Elle traverse Sentinelle comme les autres, et son dossier arrive au département risque et conformité.</p>
     <div class="saisie">
       <form class="panneau" id="formulaire">
         <label class="champ"><span>Transaction préparée</span><select id="f-choix"></select></label>
@@ -332,7 +332,7 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
         <button class="bouton principal" type="submit">Envoyer la transaction</button>
         <p class="note">Les montants suivent PaySim, dont la monnaie est masquée : ce ne sont pas des francs CFA.</p>
       </form>
-      <div class="panneau fiche" id="resultat"><p class="vide">Le verdict s'affichera ici.</p></div>
+      <div id="resultat" aria-live="polite"></div>
     </div>
   </section>
 </main>
@@ -577,18 +577,21 @@ function decider(action) {
 async function noterSaisie(ev) {
   ev.preventDefault();
   const corps = { expediteur: $("f-src").value.trim(), destinataire: $("f-dst").value.trim(), montant: Number($("f-montant").value) };
-  $("resultat").innerHTML = "<p class='vide'>Calcul du score…</p>";
+  $("resultat").innerHTML = "<div class='panneau'><p class='vide'>Envoi en cours…</p></div>";
   try {
     const r = await fetch("/demo/noter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
     if (!r.ok) throw new Error("le service a répondu " + r.status);
     T.push(await r.json());
     const i = T.length - 1;
-    $("resultat").innerHTML = fiche(i, false) +
-      "<p class='note' style='margin:0 0 1rem'>Cette transaction a été transmise au département risque et conformité.</p>" +
-      "<div class='actions'><button class='bouton principal' id='b-file'>Ouvrir dans Risque et conformité</button></div>";
+    const bloque = zone(i) === "bloque";
+    $("resultat").innerHTML = "<div class='panneau'><header style='display:flex;gap:1rem;align-items:center;margin-bottom:.6rem'>" +
+      "<h2 style='margin:0 auto 0 0;font-size:1.35rem'>" + transaction(i) + "</h2><span class='puce " + (bloque ? "bloque" : "traite") + "'>" + (bloque ? "Bloquée" : "Envoyée") + "</span></header>" +
+      "<p style='margin:0 0 1.1rem'>" + (bloque ? "La transaction a été bloquée avant l'envoi : l'argent n'est pas parti." : "La transaction est partie.") +
+      " Son dossier a été transmis au département risque et conformité.</p>" +
+      "<div class='actions'><button class='bouton principal' id='b-file'>Ouvrir dans Risque et conformité</button></div></div>";
     $("b-file").onclick = () => { choisi = i; filtre = "attente"; montrer("risque"); };
     afficherBilan();
-  } catch (e) { $("resultat").innerHTML = "<p class='erreur'>Impossible de noter ce transfert : " + esc(e.message) + ".</p>"; }
+  } catch (e) { $("resultat").innerHTML = "<p class='erreur'>Impossible d'envoyer cette transaction : " + esc(e.message) + ".</p>"; }
 }
 
 // ---------------------------------------------------------------------------- navigation et commandes
