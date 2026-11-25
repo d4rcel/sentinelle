@@ -60,6 +60,25 @@ curl -s -X POST http://127.0.0.1:8000/noter -H 'Content-Type: application/json' 
 Routes : `POST /noter` (verdict, sans rien enregistrer), `POST /transferts` et `POST /retraits`
 (opérations confirmées), `GET /comptes/{id}`, `GET /sante`, `POST /reinitialiser`.
 
+## La console institution
+
+Ouvrir http://127.0.0.1:8000/demo une fois le service lancé (`bash lancer.sh`, ou `bash lancer.sh console`
+pour elle seule). Elle s'adresse à un établissement : banque, opérateur, prestataire de paiement.
+
+| Vue | Ce qu'elle montre |
+|---|---|
+| Flux en direct | Les 7 432 transferts du flux traversent Sentinelle. Chacun passe, voit son expéditeur averti, ou est bloqué avant l'envoi. Deux curseurs règlent les seuils de l'établissement et reclassent aussitôt le trafic : arnaques arrêtées d'un côté, clients honnêtes gênés de l'autre. |
+| Risque et conformité | La file des décisions automatiques. L'analyste confirme la fraude (le compte passe sous surveillance, ses prochains transferts sont bloqués), déclare une fausse alerte (le compte est déclaré de confiance), ou ouvre une analyse approfondie (ticket interne). |
+| Transaction unique | Saisir un transfert et obtenir son score, ses raisons et la décision qui en découle. |
+
+Déroulé conseillé en deux minutes : lancer le flux en vitesse « Rapide », passer du réglage « Mesuré » au
+réglage « Strict » pour montrer le prix d'un seuil trop bas, ouvrir « Risque et conformité », confirmer une
+fraude, libérer une fausse alerte, puis noter une transaction vers le compte le plus signalé.
+
+À dire : la décision automatique tombe avant l'envoi, parce qu'un transfert confirmé est irrévocable. L'analyste
+intervient ensuite. Les seuils, les tickets et les listes de surveillance et de confiance vivent dans le
+navigateur : rien n'est relié à un outil interne réel. Les montants suivent PaySim, pas le franc CFA.
+
 ## L'écran de démo
 
 | Onglet | Ce qu'il montre |

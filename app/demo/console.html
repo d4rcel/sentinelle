@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinelle, console de l'établissement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Police chargée sans bloquer l'affichage : hors connexion, la police du système prend le relais. -->
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --fond: #EEF1F5;
+  --surface: #FFFFFF;
+  --encre: #0F1B2D;
+  --discret: #566378;
+  --trait: #D9DFE7;
+  --marque: #2B3FB8;
+  --marque-fond: #E6E9FA;
+  --scene: #0D1830;
+  --passe: #8794A8;
+  --averti: #B86E00;   --averti-vif: #F2A93B;  --averti-fond: #FCEFD8;
+  --bloque: #B92D25;   --bloque-vif: #F0564B;  --bloque-fond: #FBE4E1;
+  --ok: #1B7347;       --ok-fond: #DFF2E7;
+  --police: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --rayon: 14px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--fond); color: var(--encre); font: 400 16px/1.5 var(--police); min-height: 100vh; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--marque); outline-offset: 2px; border-radius: 6px; }
+.nb { font-variant-numeric: tabular-nums; }
+[hidden] { display: none !important; }
+
+/* ------------------------------------------------------------------ barre du haut */
+.barre {
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+  padding: 0.9rem clamp(1rem, 3vw, 2.5rem);
+  background: var(--surface); border-bottom: 1px solid var(--trait);
+  position: sticky; top: 0; z-index: 5;
+}
+.marque { display: flex; align-items: baseline; gap: 0.7rem; margin-right: auto; }
+.marque strong { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+.marque strong::before {
+  content: ""; display: inline-block; width: 0.62em; height: 0.62em; margin-right: 0.45em;
+  border-radius: 50%; background: var(--marque); box-shadow: 0 0 0 4px var(--marque-fond);
+  transform: translateY(-0.06em);
+}
+.marque span { color: var(--discret); font-size: 0.95rem; }
+.onglets { display: flex; gap: 0.25rem; background: var(--fond); padding: 0.25rem; border-radius: 999px; }
+.onglets button {
+  border: 0; background: transparent; padding: 0.5rem 1.05rem; border-radius: 999px;
+  font-weight: 600; font-size: 0.95rem; color: var(--discret); display: flex; align-items: center; gap: 0.5rem;
+}
+.onglets button[aria-selected="true"] { background: var(--encre); color: #fff; }
+.pastille {
+  min-width: 1.5rem; padding: 0 0.4rem; border-radius: 999px; font-size: 0.8rem; line-height: 1.5rem;
+  text-align: center; background: var(--bloque); color: #fff; font-variant-numeric: tabular-nums;
+}
+.horloge { color: var(--discret); font-size: 0.95rem; min-width: 11.5rem; text-align: right; }
+
+main { padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 3rem; max-width: 96rem; margin: 0 auto; }
+h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 0.25rem; }
+h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.75rem; }
+.intro { color: var(--discret); margin: 0 0 1.25rem; max-width: 70ch; }
+.panneau { background: var(--surface); border: 1px solid var(--trait); border-radius: var(--rayon); padding: 1.25rem 1.4rem; }
+.note { color: var(--discret); font-size: 0.875rem; margin: 0.75rem 0 0; }
+
+/* ------------------------------------------------------------------ la scène : le flux qui traverse Sentinelle */
+.scene { position: relative; background: var(--scene); border-radius: var(--rayon); overflow: hidden; height: 330px; color: #fff; }
+.scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.repere { position: absolute; font-size: 0.875rem; color: #A9B6CC; line-height: 1.25; pointer-events: none; }
+.repere b { display: block; font-size: 1.65rem; font-weight: 700; color: #fff; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.repere.entree { left: 1.25rem; top: 1rem; }
+.repere.porte { left: 42%; top: 1rem; transform: translateX(-50%); text-align: center; color: #C9D0FF; font-weight: 600; }
+.repere.voie { right: 1.25rem; text-align: right; }
+.repere.v-passe  { top: 18%; }
+.repere.v-averti { top: 53%; }
+.repere.v-bloque { top: 76%; }
+.repere.v-averti b { color: var(--averti-vif); }
+.repere.v-bloque b { color: var(--bloque-vif); }
+
+.commandes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; margin: 0.9rem 0 1.25rem; }
+.bouton {
+  border: 1px solid var(--trait); background: var(--surface); border-radius: 10px;
+  padding: 0.55rem 1rem; font-weight: 600; font-size: 0.95rem;
+}
+.bouton:hover { border-color: var(--encre); }
+.bouton.principal { background: var(--marque); border-color: var(--marque); color: #fff; min-width: 8.2rem; }
+.bouton.principal:hover { background: #22339A; }
+.bouton:disabled { opacity: 0.45; cursor: default; }
+.segments { display: inline-flex; border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.segments button { border: 0; background: transparent; padding: 0.55rem 0.85rem; font-size: 0.9rem; font-weight: 600; color: var(--discret); }
+.segments button[aria-pressed="true"] { background: var(--encre); color: #fff; }
+.avance { flex: 1 1 12rem; display: flex; align-items: center; gap: 0.75rem; color: var(--discret); font-size: 0.9rem; }
+.avance i { flex: 1; height: 6px; background: var(--trait); border-radius: 3px; overflow: hidden; }
+.avance i::after { content: ""; display: block; height: 100%; width: var(--p, 0%); background: var(--marque); }
+
+.deux { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.25rem; }
+.deux + .panneau { margin-top: 1.25rem; }
+
+/* réglage des seuils */
+.histo { display: flex; align-items: flex-end; gap: 2px; height: 84px; margin: 0.25rem 0 0.4rem; }
+.histo i { flex: 1; min-height: 2px; background: var(--passe); border-radius: 2px 2px 0 0; }
+.histo i.averti { background: var(--averti-vif); }
+.histo i.bloque { background: var(--bloque-vif); }
+.axe { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--discret); margin-bottom: 0.9rem; }
+.seuil { display: grid; grid-template-columns: 12.5rem 1fr 3.2rem; align-items: center; gap: 0.75rem; margin: 0.45rem 0; }
+.seuil label { font-weight: 600; font-size: 0.95rem; }
+.seuil output { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--marque); height: 1.5rem; }
+#r-avertir { accent-color: var(--averti); }
+#r-bloquer { accent-color: var(--bloque); }
+.reglages { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; align-items: center; }
+.reglages span { font-size: 0.9rem; color: var(--discret); }
+
+/* résultat */
+.bilan { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 1.5rem; }
+.bilan h3 { margin: 0 0 0.4rem; font-size: 0.95rem; font-weight: 600; color: var(--discret); }
+.grand { font-size: 2.6rem; font-weight: 700; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.grand small { font-size: 1rem; font-weight: 500; color: var(--discret); letter-spacing: 0; }
+.detail { margin: 0.5rem 0 0; padding: 0; list-style: none; font-size: 0.925rem; }
+.detail li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.22rem 0; border-top: 1px solid var(--trait); }
+.detail li b { font-variant-numeric: tabular-nums; }
+.ok { color: var(--ok); } .mal { color: var(--bloque); } .mi { color: var(--averti); }
+
+/* listes de décisions */
+.puce { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.puce.bloque { background: var(--bloque-fond); color: var(--bloque); }
+.puce.averti { background: var(--averti-fond); color: var(--averti); }
+.puce.passe  { background: var(--fond); color: var(--discret); }
+.puce.traite { background: var(--ok-fond); color: var(--ok); }
+.puce.ticket { background: var(--marque-fond); color: var(--marque); }
+table { width: 100%; border-collapse: collapse; font-size: 0.925rem; }
+th { text-align: left; font-weight: 600; color: var(--discret); font-size: 0.85rem; padding: 0.3rem 0.6rem; }
+td { padding: 0.5rem 0.6rem; border-top: 1px solid var(--trait); vertical-align: top; }
+td.droite, th.droite { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vide { color: var(--discret); padding: 1.5rem 0.5rem; text-align: center; }
+
+/* ------------------------------------------------------------------ vue risque */
+.entete { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem 2rem; margin-bottom: 1.1rem; }
+.entete > div:first-child { margin-right: auto; }
+.compteurs { display: flex; gap: 1.75rem; }
+.compteurs div { font-size: 0.875rem; color: var(--discret); }
+.compteurs b { display: block; font-size: 1.6rem; color: var(--encre); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.atelier { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr); gap: 1.25rem; align-items: start; }
+.file { padding: 0.6rem; max-height: calc(100vh - 15rem); overflow: auto; }
+.file button.cas {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 0.2rem 0.8rem; align-items: center; width: 100%;
+  text-align: left; border: 0; background: transparent; padding: 0.7rem 0.75rem; border-radius: 10px;
+}
+.file button.cas:hover { background: var(--fond); }
+.file button.cas[aria-current="true"] { background: var(--marque-fond); }
+.cas .qui { font-weight: 600; }
+.cas .quoi { grid-column: 2; color: var(--discret); font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cas .score { grid-row: 1 / span 2; grid-column: 3; text-align: right; font-weight: 700; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.cas .score small { display: block; font-size: 0.78rem; font-weight: 500; color: var(--discret); }
+.cas .puce { grid-row: 1 / span 2; }
+.filtres { display: flex; gap: 0.4rem; padding: 0.4rem 0.4rem 0.7rem; flex-wrap: wrap; }
+
+.fiche header { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin-bottom: 1rem; }
+.fiche header h2 { font-size: 1.35rem; margin: 0 auto 0 0; }
+.jauge { display: grid; grid-template-columns: auto 1fr; gap: 1.25rem; align-items: center; margin-bottom: 1.1rem; }
+.jauge .grand { font-size: 3.2rem; }
+.piste { position: relative; height: 12px; border-radius: 6px; background: linear-gradient(to right, var(--passe) 0 var(--a), var(--averti-vif) var(--a) var(--b), var(--bloque-vif) var(--b) 100%); }
+.piste i { position: absolute; top: -5px; width: 4px; height: 22px; background: var(--encre); border-radius: 2px; left: calc(var(--s) - 2px); box-shadow: 0 0 0 2px var(--surface); }
+.piste + p { margin: 0.5rem 0 0; font-size: 0.925rem; }
+.faits { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.6rem; margin: 0 0 1.1rem; padding: 0; list-style: none; }
+.faits li { background: var(--fond); border-radius: 10px; padding: 0.65rem 0.8rem; font-size: 0.875rem; color: var(--discret); }
+.faits b { display: block; font-size: 1.25rem; color: var(--encre); font-variant-numeric: tabular-nums; }
+.raisons { margin: 0 0 1.25rem; padding-left: 1.2rem; }
+.raisons li { margin: 0.2rem 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.actions .fraude { background: var(--bloque); border-color: var(--bloque); color: #fff; }
+.actions .libre  { background: var(--ok); border-color: var(--ok); color: #fff; }
+.issue { border-radius: 12px; padding: 0.9rem 1.1rem; margin-bottom: 1rem; }
+.issue.fraude { background: var(--bloque-fond); } .issue.libre { background: var(--ok-fond); } .issue.ticket { background: var(--marque-fond); }
+.issue p { margin: 0.2rem 0; }
+
+/* ------------------------------------------------------------------ transaction unique */
+.saisie { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 1.25rem; align-items: start; }
+.champ { display: block; margin-bottom: 1rem; }
+.champ span { display: block; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem; }
+.champ input { width: 100%; padding: 0.7rem 0.85rem; border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); font-size: 1.05rem; }
+.raccourcis { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: -0.5rem 0 1rem; }
+.raccourcis button { border: 1px solid var(--trait); background: var(--fond); border-radius: 999px; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+.raccourcis button:hover { border-color: var(--encre); }
+
+footer { max-width: 96rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2.5rem) 2.5rem; color: var(--discret); font-size: 0.875rem; }
+footer p { margin: 0.25rem 0; max-width: 100ch; }
+.erreur { background: var(--bloque-fond); color: var(--bloque); padding: 1rem 1.25rem; border-radius: 12px; font-weight: 600; }
+
+@media (max-width: 62rem) {
+  .deux, .atelier, .saisie, .bilan { grid-template-columns: 1fr; }
+  .file { max-height: 22rem; }
+  .seuil { grid-template-columns: 1fr 3.2rem; } .seuil label { grid-column: 1 / -1; }
+  .horloge { display: none; }
+  .repere b { font-size: 1.25rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="barre">
+  <div class="marque"><strong>Sentinelle</strong><span>Console de l'établissement</span></div>
+  <nav class="onglets" role="tablist" aria-label="Vues">
+    <button role="tab" data-vue="flux" aria-selected="true">Flux en direct</button>
+    <button role="tab" data-vue="risque" aria-selected="false">Risque et conformité <span class="pastille" id="pastille" hidden>0</span></button>
+    <button role="tab" data-vue="unique" aria-selected="false">Transaction unique</button>
+  </nav>
+  <div class="horloge nb" id="horloge"></div>
+</header>
+
+<main>
+  <div id="chargement" class="panneau">Chargement du flux et du modèle…</div>
+
+  <!-- ============================================================== FLUX -->
+  <section id="vue-flux" hidden>
+    <h1>Chaque transfert est noté avant de partir</h1>
+    <p class="intro">Le trafic traverse Sentinelle. Selon le score et les seuils choisis par l'établissement, un transfert passe, son expéditeur est averti, ou il est bloqué avant l'envoi.</p>
+
+    <div class="scene" id="scene">
+      <canvas id="toile" aria-hidden="true"></canvas>
+      <div class="repere entree">Transferts traités<b id="n-traites">0</b></div>
+      <div class="repere porte">Sentinelle</div>
+      <div class="repere voie v-passe">Passent<b id="n-passe">0</b></div>
+      <div class="repere voie v-averti">Expéditeur averti<b id="n-averti">0</b></div>
+      <div class="repere voie v-bloque">Bloqués avant l'envoi<b id="n-bloque">0</b></div>
+    </div>
+
+    <div class="commandes">
+      <button class="bouton principal" id="b-lecture">Lancer le flux</button>
+      <div class="segments" role="group" aria-label="Vitesse">
+        <button data-vitesse="6" aria-pressed="false">Lent</button>
+        <button data-vitesse="40" aria-pressed="true">Normal</button>
+        <button data-vitesse="250" aria-pressed="false">Rapide</button>
+      </div>
+      <button class="bouton" id="b-tout">Tout traiter</button>
+      <button class="bouton" id="b-debut">Revenir au début</button>
+      <div class="avance"><i id="avance"></i><span class="nb" id="avance-texte"></span></div>
+    </div>
+
+    <div class="deux">
+      <div class="panneau">
+        <h2>Le réglage de l'établissement</h2>
+        <div class="histo" id="histo" aria-hidden="true"></div>
+        <div class="axe"><span>Score 0, aucun risque</span><span>Score 1, risque maximal</span></div>
+        <div class="seuil">
+          <label for="r-avertir">Avertir l'expéditeur dès</label>
+          <input type="range" id="r-avertir" min="0.05" max="0.99" step="0.01">
+          <output id="o-avertir" for="r-avertir"></output>
+        </div>
+        <div class="seuil">
+          <label for="r-bloquer">Bloquer le transfert dès</label>
+          <input type="range" id="r-bloquer" min="0.05" max="0.99" step="0.01">
+          <output id="o-bloquer" for="r-bloquer"></output>
+        </div>
+        <div class="reglages">
+          <span>Réglages types :</span>
+          <button class="bouton" data-reglage="strict">Strict</button>
+          <button class="bouton" data-reglage="mesure">Mesuré</button>
+          <button class="bouton" data-reglage="souple">Souple</button>
+        </div>
+        <p class="note">Les barres montrent combien de transferts ont reçu chaque score. Déplacer un seuil reclasse aussitôt tout le trafic déjà traité.</p>
+      </div>
+
+      <div class="panneau">
+        <h2>Ce que ce réglage donne sur ce trafic</h2>
+        <div class="bilan">
+          <div>
+            <h3>Arnaques arrêtées</h3>
+            <div class="grand"><span id="k-arretees">0</span> <small>sur <span id="k-arnaques">0</span></small></div>
+            <ul class="detail">
+              <li><span>Bloquées avant l'envoi</span><b class="ok" id="k-v-bloque">0</b></li>
+              <li><span>Expéditeur averti</span><b class="mi" id="k-v-averti">0</b></li>
+              <li><span>Passées sans alerte</span><b class="mal" id="k-v-passe">0</b></li>
+              <li><span>Montant des victimes retenu</span><b id="k-montant">0 %</b></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Clients honnêtes gênés</h3>
+            <div class="grand"><span id="k-genes">0</span> <small>sur <span id="k-honnetes">0</span></small></div>
+            <ul class="detail">
+              <li><span>Bloqués à tort</span><b class="mal" id="k-h-bloque">0</b></li>
+              <li><span>Avertis à tort</span><b class="mi" id="k-h-averti">0</b></li>
+              <li><span>Part du trafic honnête gênée</span><b id="k-taux">0 %</b></li>
+              <li><span>Transferts entre complices interceptés</span><b id="k-complices">0</b></li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">On connaît la vérité de chaque transfert parce que les données sont simulées. En production, elle viendrait des plaintes et des décisions des analystes.</p>
+      </div>
+    </div>
+
+    <div class="panneau">
+      <h2>Dernières décisions automatiques</h2>
+      <div id="fil"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================== RISQUE -->
+  <section id="vue-risque" hidden>
+    <div class="entete">
+      <div>
+        <h1>Département risque et conformité</h1>
+        <p class="intro" style="margin:0">Les décisions automatiques arrivent ici. L'analyste confirme, libère ou ouvre une analyse. Chaque réponse sert ensuite à réentraîner le modèle.</p>
+      </div>
+      <div class="compteurs">
+        <div><b id="c-attente">0</b>à traiter</div>
+        <div><b id="c-traites">0</b>traités</div>
+        <div><b id="c-tickets">0</b>analyses ouvertes</div>
+        <div><b id="c-etiquettes">0</b>étiquettes pour le modèle</div>
+      </div>
+    </div>
+    <div class="atelier">
+      <div class="panneau file">
+        <div class="filtres"><div class="segments" role="group" aria-label="Filtre">
+          <button data-filtre="attente" aria-pressed="true">À traiter</button>
+          <button data-filtre="traites" aria-pressed="false">Traités</button>
+          <button data-filtre="tous" aria-pressed="false">Tous</button>
+        </div></div>
+        <div id="file"></div>
+      </div>
+      <div class="panneau fiche" id="fiche"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================== UNIQUE -->
+  <section id="vue-unique" hidden>
+    <h1>Noter une transaction</h1>
+    <p class="intro">Le service note ce transfert contre l'historique connu à la fin du flux, comme il le ferait pour un client de l'établissement.</p>
+    <div class="saisie">
+      <form class="panneau" id="formulaire">
+        <label class="champ"><span>Compte expéditeur</span><input id="f-src" value="CLIENT-DEMO" autocomplete="off" required></label>
+        <label class="champ"><span>Compte destinataire</span><input id="f-dst" autocomplete="off" required></label>
+        <div class="raccourcis" id="raccourcis"></div>
+        <label class="champ"><span>Montant</span><input id="f-montant" type="number" min="1" step="1" value="150000" required></label>
+        <button class="bouton principal" type="submit">Noter le transfert</button>
+        <p class="note">Les montants suivent PaySim, dont la monnaie est masquée : ce ne sont pas des francs CFA.</p>
+      </form>
+      <div class="panneau fiche" id="resultat"><p class="vide">Le verdict s'affichera ici.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer id="pied" hidden></footer>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------------------- état
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const nombre = (v) => Math.round(v).toLocaleString("fr-FR");
+const pourcent = (v, d = 1) => (100 * v).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %";
+const score2 = (v) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const compte = (id) => "Compte n° " + String(id).slice(-5);
+const heure = (t) => { const j = Math.floor(t / 86400) + 1, h = Math.floor(t % 86400 / 3600), m = Math.floor(t % 3600 / 60);
+  return "Jour " + j + ", " + String(h).padStart(2, "0") + " h " + String(m).padStart(2, "0"); };
+const SCENARIOS = { fond: "transfert honnête du trafic normal", fond_mule: "transfert honnête vers un futur compte complice",
+  L_commerce: "paiement honnête à un petit commerce", L_etudiant: "envoi honnête à un étudiant", L_nouveau: "transfert honnête vers un compte neuf",
+  L_tontine: "cotisation honnête à une tontine", S1_erreur: "arnaque du transfert par erreur", S2_faux_agent: "arnaque du faux agent",
+  S3_collecteur: "arnaque vers un compte collecteur", S4_chaine: "arnaque vers une chaîne de comptes complices" };
+const LIBELLE = { bloque: "Bloqué", averti: "Averti", passe: "Passé" };
+
+let T = [];                 // tous les transferts du flux, puis les transactions saisies
+let nFlux = 0;              // nombre de transferts du flux
+let n = 0;                  // transferts déjà traités
+let seuils = { avertir: 0.73, bloquer: 0.78 }, seuilsMesures = null;
+let lecture = false, vitesse = 40, reste = 0, dernier = 0;
+const surveilles = new Map();   // compte -> rang à partir duquel la conformité l'a placé sous surveillance
+const confiance = new Map();    // compte -> rang à partir duquel la conformité l'a déclaré de confiance
+const dossiers = new Map();     // rang du transfert -> { statut: "fraude" | "libre" | "ticket", ticket }
+let filtre = "attente", choisi = null, numeroTicket = 2611;
+const mouvementReduit = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Décision automatique pour le transfert de rang i, selon les seuils et les listes de la conformité.
+function zone(i) {
+  const x = T[i];
+  if (surveilles.has(x.dst) && i > surveilles.get(x.dst)) return "bloque";
+  if (confiance.has(x.dst) && i > confiance.get(x.dst)) return "passe";
+  return x.score >= seuils.bloquer ? "bloque" : x.score >= seuils.avertir ? "averti" : "passe";
+}
+const traites = () => { const r = []; for (let i = 0; i < n; i++) r.push(i); for (let i = nFlux; i < T.length; i++) r.push(i); return r; };
+
+// ---------------------------------------------------------------------------- bilan
+function bilan() {
+  const b = { passe: 0, averti: 0, bloque: 0, v: { passe: 0, averti: 0, bloque: 0 }, h: { passe: 0, averti: 0, bloque: 0 },
+              complices: 0, montantV: 0, montantRetenu: 0, histo: new Array(40).fill(0) };
+  for (let i = 0; i < n; i++) {
+    const x = T[i], z = zone(i);
+    b[z]++; b.histo[Math.min(39, Math.floor(x.score * 40))]++;
+    if (x.victime) { b.v[z]++; b.montantV += x.montant; if (z === "bloque") b.montantRetenu += x.montant; }
+    else if (x.fraude) { if (z !== "passe") b.complices++; }
+    else b.h[z]++;
+  }
+  return b;
+}
+
+function afficherBilan() {
+  const b = bilan();
+  $("n-traites").textContent = nombre(n); $("n-passe").textContent = nombre(b.passe);
+  $("n-averti").textContent = nombre(b.averti); $("n-bloque").textContent = nombre(b.bloque);
+  const nv = b.v.passe + b.v.averti + b.v.bloque, nh = b.h.passe + b.h.averti + b.h.bloque;
+  $("k-arretees").textContent = b.v.bloque; $("k-arnaques").textContent = nv;
+  $("k-v-bloque").textContent = b.v.bloque; $("k-v-averti").textContent = b.v.averti; $("k-v-passe").textContent = b.v.passe;
+  $("k-montant").textContent = b.montantV ? pourcent(b.montantRetenu / b.montantV, 0) : "0 %";
+  $("k-genes").textContent = nombre(b.h.bloque + b.h.averti); $("k-honnetes").textContent = nombre(nh);
+  $("k-h-bloque").textContent = nombre(b.h.bloque); $("k-h-averti").textContent = nombre(b.h.averti);
+  $("k-taux").textContent = nh ? pourcent((b.h.bloque + b.h.averti) / nh, 2) : "0 %";
+  $("k-complices").textContent = b.complices;
+  pile = b.bloque;
+  // histogramme (échelle en racine, sinon les scores proches de zéro écrasent tout)
+  const max = Math.sqrt(Math.max(1, ...b.histo));
+  const barres = $("histo").children;
+  for (let k = 0; k < 40; k++) {
+    const milieu = (k + 0.5) / 40;
+    barres[k].style.height = (b.histo[k] ? Math.max(4, 100 * Math.sqrt(b.histo[k]) / max) : 0) + "%";
+    barres[k].className = milieu >= seuils.bloquer ? "bloque" : milieu >= seuils.avertir ? "averti" : "";
+  }
+  $("avance").style.setProperty("--p", (100 * n / nFlux) + "%");
+  $("avance-texte").textContent = nombre(n) + " sur " + nombre(nFlux);
+  $("horloge").textContent = n ? heure(T[n - 1].t) : heure(T[0].t);
+  // fil des dernières décisions
+  const lignes = [];
+  for (let i = n - 1; i >= 0 && lignes.length < 7; i--) { const z = zone(i); if (z !== "passe") lignes.push(ligneFil(i, z)); }
+  $("fil").innerHTML = lignes.length
+    ? "<table><thead><tr><th>Décision</th><th>Quand</th><th>Destinataire</th><th class='droite'>Montant</th><th class='droite'>Score</th><th>Raison principale</th></tr></thead><tbody>" + lignes.join("") + "</tbody></table>"
+    : "<p class='vide'>Aucune alerte pour l'instant. Lancez le flux.</p>";
+  const attente = cas().filter((c) => !dossiers.has(c.i)).length;
+  $("pastille").hidden = attente === 0; $("pastille").textContent = attente;
+  if (!$("vue-risque").hidden) afficherRisque();
+}
+function raisonDe(i) {
+  const x = T[i];
+  if (surveilles.has(x.dst) && i > surveilles.get(x.dst)) return "compte placé sous surveillance par la conformité";
+  return x.raisons[0] || "score supérieur au seuil de l'établissement";
+}
+function ligneFil(i, z) {
+  const x = T[i];
+  return "<tr><td><span class='puce " + z + "'>" + LIBELLE[z] + "</span></td><td class='nb'>" + heure(x.t) + "</td><td>" + esc(compte(x.dst)) +
+    "</td><td class='droite'>" + nombre(x.montant) + "</td><td class='droite'>" + score2(x.score) + "</td><td>" + esc(raisonDe(i)) + "</td></tr>";
+}
+
+// ---------------------------------------------------------------------------- la scène animée
+const toile = $("toile"), ctx = toile.getContext("2d");
+let L = 0, H = 0, particules = [], pile = 0;
+function taille() {
+  const r = $("scene").getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  L = r.width; H = r.height; toile.width = L * d; toile.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+const VOIE = { passe: 0.30, averti: 0.62, bloque: 0.86 };
+const TEINTE = { passe: "#6F7F98", averti: "#F2A93B", bloque: "#F0564B" };
+function lancer(i) {
+  if (mouvementReduit) return;
+  const z = zone(i);
+  if (z === "passe" && Math.random() > Math.min(1, 28 / vitesse)) return;   // à grande vitesse, on ne dessine qu'un échantillon
+  if (particules.length > 500) return;
+  particules.push({ z, y0: H * (0.2 + 0.36 * Math.random()), ecart: (Math.random() - 0.5) * H * (z === "passe" ? 0.3 : 0.05),
+                    r: Math.max(2.2, Math.min(6, Math.log10(T[i].montant + 10) - 2.2)), t: 0 });
+}
+function dessiner(dt) {
+  ctx.clearRect(0, 0, L, H);
+  const px = L * 0.42;
+  // voies
+  ctx.lineWidth = 1;
+  for (const z of ["averti", "bloque"]) {
+    ctx.strokeStyle = z === "averti" ? "rgba(242,169,59,.16)" : "rgba(240,86,75,.18)";
+    ctx.beginPath(); ctx.moveTo(px, H * VOIE[z]); ctx.lineTo(L, H * VOIE[z]); ctx.stroke();
+  }
+  // la porte
+  const g = ctx.createLinearGradient(px - 26, 0, px + 26, 0);
+  g.addColorStop(0, "rgba(90,110,255,0)"); g.addColorStop(0.5, "rgba(120,138,255,.34)"); g.addColorStop(1, "rgba(90,110,255,0)");
+  ctx.fillStyle = g; ctx.fillRect(px - 26, 0, 52, H);
+  ctx.fillStyle = "#8E9BFF"; ctx.fillRect(px - 1, H * 0.13, 2, H * 0.83);
+  // les transferts bloqués restent retenus derrière la porte
+  const pas = 11, parRang = Math.max(1, Math.floor((L * 0.58 - 190) / pas));
+  ctx.fillStyle = TEINTE.bloque;
+  for (let k = 0; k < Math.min(pile, parRang * 3); k++) {
+    ctx.beginPath(); ctx.arc(px + 16 + (k % parRang) * pas, H * VOIE.bloque - 10 + Math.floor(k / parRang) * 10, 3.4, 0, 7); ctx.fill();
+  }
+  // les transferts en mouvement
+  const duree = 1.9;
+  for (const p of particules) {
+    p.t += dt / duree;
+    const u = Math.min(1, p.t), x = -8 + u * (L + 16);
+    let y = p.y0, couleur = "#93A2BC";
+    if (x > px) {
+      const v = Math.min(1, (x - px) / (L * 0.16)), e = v * v * (3 - 2 * v);
+      y = p.y0 + (H * VOIE[p.z] + p.ecart - p.y0) * e; couleur = TEINTE[p.z];
+      if (p.z === "bloque" && v >= 1) { p.t = 2; continue; }      // arrivé dans la retenue
+    }
+    if (p.z !== "passe" && x > px) { ctx.fillStyle = p.z === "averti" ? "rgba(242,169,59,.22)" : "rgba(240,86,75,.25)";
+      ctx.beginPath(); ctx.arc(x, y, p.r + 5, 0, 7); ctx.fill(); }
+    ctx.fillStyle = couleur; ctx.beginPath(); ctx.arc(x, y, p.r, 0, 7); ctx.fill();
+  }
+  particules = particules.filter((p) => p.t < 1);
+}
+
+// ---------------------------------------------------------------------------- boucle de lecture
+function avancer(k) {
+  const fin = Math.min(nFlux, n + k);
+  for (let i = n; i < fin; i++) { n = i + 1; lancer(i); }
+  if (n >= nFlux) arreter();
+}
+function arreter() { lecture = false; $("b-lecture").textContent = n >= nFlux ? "Flux terminé" : "Reprendre"; $("b-lecture").disabled = n >= nFlux; }
+let dernierBilan = 0;
+function image(maintenant) {
+  const dt = Math.min(0.1, (maintenant - dernier) / 1000 || 0); dernier = maintenant;
+  if (lecture) {
+    reste += vitesse * dt; const k = Math.floor(reste); reste -= k;
+    if (k) avancer(k);
+    if (maintenant - dernierBilan > 140) { afficherBilan(); dernierBilan = maintenant; }
+  }
+  dessiner(dt);
+  requestAnimationFrame(image);
+}
+
+// ---------------------------------------------------------------------------- vue risque
+function cas() { return traites().map((i) => ({ i, z: zone(i) })).filter((c) => c.z !== "passe" || dossiers.has(c.i)); }
+function afficherRisque() {
+  const tous = cas();
+  const attente = tous.filter((c) => !dossiers.has(c.i)), faits = tous.filter((c) => dossiers.has(c.i));
+  $("c-attente").textContent = attente.length; $("c-traites").textContent = faits.length;
+  $("c-tickets").textContent = faits.filter((c) => dossiers.get(c.i).statut === "ticket").length;
+  $("c-etiquettes").textContent = faits.filter((c) => dossiers.get(c.i).statut !== "ticket").length;
+  const liste = (filtre === "attente" ? attente : filtre === "traites" ? faits : tous).sort((a, b) => T[b.i].score - T[a.i].score);
+  // Un dossier qu'on vient de traiter reste affiché, pour lire l'issue, jusqu'à ce qu'on en choisisse un autre.
+  if (choisi === null || !(liste.some((c) => c.i === choisi) || dossiers.has(choisi))) choisi = liste.length ? liste[0].i : null;
+  $("file").innerHTML = liste.length ? liste.slice(0, 120).map((c) => {
+    const x = T[c.i], d = dossiers.get(c.i);
+    const puce = d ? (d.statut === "ticket" ? "<span class='puce ticket'>Analyse</span>" : "<span class='puce traite'>Traité</span>")
+                   : "<span class='puce " + c.z + "'>" + LIBELLE[c.z] + "</span>";
+    return "<button class='cas' data-i='" + c.i + "' aria-current='" + (c.i === choisi) + "'>" + puce +
+      "<span class='qui'>" + esc(compte(x.dst)) + "</span><span class='score'>" + score2(x.score) + "<small>" + nombre(x.montant) + "</small></span>" +
+      "<span class='quoi'>" + esc(raisonDe(c.i)) + "</span></button>";
+  }).join("") : "<p class='vide'>" + (filtre === "attente" ? "Rien à traiter. Lancez le flux, ou changez les seuils." : "Aucun dossier.") + "</p>";
+  $("fiche").innerHTML = choisi === null ? "<p class='vide'>Sélectionnez une alerte.</p>" : fiche(choisi, true);
+}
+function faits(x) {
+  const a = x.apercu, anc = a.dst_anciennete_j;
+  return [
+    [anc < 0 ? "Jamais vu" : anc < 1 ? "Moins d'un jour" : nombre(anc) + " jours", "ancienneté du compte destinataire"],
+    [nombre(a.dst_nb_recus), "transferts déjà reçus"],
+    [nombre(a.dst_nouveaux_exp_24h), "nouveaux expéditeurs en 24 heures"],
+    [nombre(a.dst_sorties_rapides) + " sur " + nombre(a.dst_nb_sorties), "sorties faites en moins de 30 minutes"],
+    [pourcent(Math.min(1, a.dst_ratio_sorties_entrees), 0), "de l'argent reçu est déjà ressorti"],
+    [a.premier_contact ? "Oui" : "Non", "premier transfert entre ces deux comptes"],
+  ].map((f) => "<li><b>" + esc(f[0]) + "</b>" + esc(f[1]) + "</li>").join("");
+}
+function fiche(i, avecActions) {
+  const x = T[i], z = zone(i), d = dossiers.get(i);
+  const autres = traites().filter((j) => j !== i && T[j].dst === x.dst && zone(j) !== "passe").length;
+  const decision = z === "bloque" ? "Transfert bloqué avant l'envoi : l'argent n'est pas parti."
+                 : z === "averti" ? "L'expéditeur a été averti du risque avant de confirmer."
+                 : "Transfert passé sans alerte avec les seuils actuels.";
+  let h = "<header><h2>" + esc(compte(x.dst)) + "</h2><span class='puce " + z + "'>" + LIBELLE[z] + "</span></header>";
+  if (d) {
+    const verite = x.fraude === null ? "" : "<p>Vérité de la simulation : " + esc(SCENARIOS[x.scen] || x.scen) + ".</p>";
+    if (d.statut === "fraude") h += "<div class='issue fraude'><p><b>Fraude confirmée.</b> Le compte destinataire est placé sous surveillance : tout nouveau transfert vers lui sera bloqué.</p>" + verite + "</div>";
+    if (d.statut === "libre") h += "<div class='issue libre'><p><b>Fausse alerte.</b> " + (z === "bloque" ? "Le transfert est libéré. " : "") + "Le compte est déclaré de confiance : ses prochains transferts passeront.</p>" + verite + "</div>";
+    if (d.statut === "ticket") h += "<div class='issue ticket'><p><b>Analyse approfondie ouverte.</b> Ticket interne RC-" + d.ticket + ", transmis à l'équipe d'investigation.</p></div>";
+  }
+  h += "<div class='jauge'><div class='grand'>" + score2(x.score) + "</div><div>" +
+       "<div class='piste' style='--a:" + (100 * seuils.avertir) + "%;--b:" + (100 * seuils.bloquer) + "%;--s:" + (100 * x.score) + "%'><i></i></div>" +
+       "<p>" + decision + "</p></div></div>";
+  h += "<ul class='faits'><li><b>" + nombre(x.montant) + "</b>montant du transfert</li><li><b>" + esc(compte(x.src)) + "</b>compte expéditeur</li>" + faits(x) + "</ul>";
+  h += "<h2>Pourquoi ce score</h2><ul class='raisons'>" + (surveilles.has(x.dst) && i > surveilles.get(x.dst) ? "<li>compte placé sous surveillance par la conformité</li>" : "") +
+       (x.raisons.length ? x.raisons.map((r) => "<li>" + esc(r) + "</li>").join("") : "<li>aucun signal marquant</li>") + "</ul>";
+  if (autres) h += "<p class='note' style='margin:-0.5rem 0 1rem'>" + autres + " autre" + (autres > 1 ? "s alertes concernent" : " alerte concerne") + " ce même compte. La décision s'appliquera à toutes.</p>";
+  if (avecActions) h += "<div class='actions'>" + (d
+      ? "<button class='bouton' data-action='annuler'>Annuler cette décision</button>"
+      : "<button class='bouton fraude' data-action='fraude'>Fraude confirmée</button><button class='bouton libre' data-action='libre'>Fausse alerte" + (z === "bloque" ? ", libérer" : "") +
+        "</button><button class='bouton' data-action='ticket'>Ouvrir une analyse approfondie</button>") + "</div>";
+  return h;
+}
+function decider(action) {
+  if (choisi === null) return;
+  const x = T[choisi], lies = traites().filter((j) => T[j].dst === x.dst && (zone(j) !== "passe" || dossiers.has(j)));
+  if (action === "annuler") { lies.forEach((j) => dossiers.delete(j)); surveilles.delete(x.dst); confiance.delete(x.dst); }
+  else {
+    const ticket = action === "ticket" ? numeroTicket++ : null;
+    lies.forEach((j) => dossiers.set(j, { statut: action, ticket }));
+    if (action === "fraude") surveilles.set(x.dst, Math.max(n, T.length) - 1);
+    if (action === "libre") confiance.set(x.dst, Math.max(n, T.length) - 1);
+  }
+  afficherBilan(); afficherRisque();
+}
+
+// ---------------------------------------------------------------------------- transaction unique
+async function noterSaisie(ev) {
+  ev.preventDefault();
+  const corps = { expediteur: $("f-src").value.trim(), destinataire: $("f-dst").value.trim(), montant: Number($("f-montant").value) };
+  $("resultat").innerHTML = "<p class='vide'>Calcul du score…</p>";
+  try {
+    const r = await fetch("/demo/noter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
+    if (!r.ok) throw new Error("le service a répondu " + r.status);
+    T.push(await r.json());
+    const i = T.length - 1, z = zone(i);
+    $("resultat").innerHTML = fiche(i, false) + (z === "passe" ? "" :
+      "<div class='actions'><button class='bouton principal' id='b-file'>Voir dans la file du département risque</button></div>");
+    const b = $("b-file"); if (b) b.onclick = () => { choisi = i; filtre = "attente"; montrer("risque"); };
+    afficherBilan();
+  } catch (e) { $("resultat").innerHTML = "<p class='erreur'>Impossible de noter ce transfert : " + esc(e.message) + ".</p>"; }
+}
+
+// ---------------------------------------------------------------------------- navigation et commandes
+function montrer(vue) {
+  for (const v of ["flux", "risque", "unique"]) $("vue-" + v).hidden = v !== vue;
+  document.querySelectorAll(".onglets button").forEach((b) => b.setAttribute("aria-selected", b.dataset.vue === vue));
+  document.querySelectorAll(".filtres button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.filtre === filtre));
+  if (vue === "risque") afficherRisque();
+  if (vue === "flux") { taille(); afficherBilan(); }
+}
+function reglerSeuils(a, b, source) {
+  a = Math.min(0.99, Math.max(0.05, a)); b = Math.min(0.99, Math.max(0.05, b));
+  if (a > b) { if (source === "bloquer") a = b; else b = a; }
+  seuils = { avertir: a, bloquer: b };
+  $("r-avertir").value = a; $("r-bloquer").value = b; $("o-avertir").textContent = score2(a); $("o-bloquer").textContent = score2(b);
+  afficherBilan();
+}
+function brancher() {
+  document.querySelectorAll(".onglets button").forEach((b) => b.onclick = () => montrer(b.dataset.vue));
+  $("b-lecture").onclick = () => { if (n >= nFlux) return; lecture = !lecture; $("b-lecture").textContent = lecture ? "Mettre en pause" : "Reprendre"; };
+  $("b-tout").onclick = () => { avancer(nFlux); particules = []; afficherBilan(); };
+  $("b-debut").onclick = () => { n = 0; reste = 0; particules = []; lecture = false; dossiers.clear(); surveilles.clear(); confiance.clear(); T.length = nFlux; choisi = null;
+    $("b-lecture").disabled = false; $("b-lecture").textContent = "Lancer le flux"; afficherBilan(); };
+  document.querySelectorAll("[data-vitesse]").forEach((b) => b.onclick = () => { vitesse = Number(b.dataset.vitesse);
+    document.querySelectorAll("[data-vitesse]").forEach((c) => c.setAttribute("aria-pressed", c === b)); });
+  $("r-avertir").oninput = (e) => reglerSeuils(Number(e.target.value), seuils.bloquer, "avertir");
+  $("r-bloquer").oninput = (e) => reglerSeuils(seuils.avertir, Number(e.target.value), "bloquer");
+  const REGLAGES = { strict: [0.30, 0.60], mesure: [seuilsMesures.avertir, seuilsMesures.bloquer], souple: [0.78, 0.95] };
+  document.querySelectorAll("[data-reglage]").forEach((b) => b.onclick = () => reglerSeuils(...REGLAGES[b.dataset.reglage]));
+  document.querySelectorAll(".filtres button").forEach((b) => b.onclick = () => { filtre = b.dataset.filtre; choisi = null; montrer("risque"); });
+  $("file").onclick = (e) => { const b = e.target.closest("button.cas"); if (b) { choisi = Number(b.dataset.i); afficherRisque(); } };
+  $("fiche").onclick = (e) => { const b = e.target.closest("[data-action]"); if (b) decider(b.dataset.action); };
+  $("formulaire").onsubmit = noterSaisie;
+  window.addEventListener("resize", taille);
+}
+function raccourcis() {
+  const flux = T.slice(0, nFlux);
+  const pire = flux.reduce((a, b) => (b.score > a.score ? b : a));
+  const boutique = flux.find((x) => x.scen === "L_commerce"), calme = flux.find((x) => x.scen === "fond" && x.score < 0.02 && x.apercu.dst_nb_recus >= 3);
+  const choix = [["Compte le plus signalé du flux", pire.dst], ["Compte jamais vu", "NOUVEAU-" + Math.floor(1000 + Math.random() * 9000)]];
+  if (boutique) choix.push(["Petit commerce", boutique.dst]);
+  if (calme) choix.push(["Compte ordinaire", calme.dst]);
+  $("f-dst").value = pire.dst;
+  $("raccourcis").innerHTML = choix.map((c) => "<button type='button' data-dst='" + esc(c[1]) + "'>" + esc(c[0]) + "</button>").join("");
+  $("raccourcis").onclick = (e) => { const b = e.target.closest("button"); if (b) $("f-dst").value = b.dataset.dst; };
+}
+function pied(d) {
+  const m = d.mesures || {}, v = m.victimes, r = m.reference_simple, t = m.decoupage && m.decoupage.test;
+  let h = "<p>Données simulées : trafic PaySim et scénarios d'arnaque ajoutés par l'équipe. Ce flux couvre trois heures de la période de test, que le modèle n'a jamais vue.</p>";
+  if (v && r && t) h += "<p>Sur toute la période de test (" + nombre(t.transferts) + " transferts), le modèle signale " + pourcent(v.signalees) +
+    " des transferts de victimes, contre " + pourcent(r.victimes_signalees) + " pour une règle simple. Sur 100 alertes du modèle, " +
+    nombre(100 * m.alertes_justes) + " visent une vraie fraude : le modèle signale, l'établissement décide.</p>";
+  $("pied").innerHTML = h; $("pied").hidden = false;
+}
+
+// ---------------------------------------------------------------------------- démarrage
+(async function () {
+  try {
+    const r = await fetch("/demo/donnees");
+    if (!r.ok) throw new Error("le service a répondu " + r.status);
+    const d = await r.json();
+    T = d.transferts; nFlux = T.length; seuilsMesures = d.seuils;
+    $("histo").innerHTML = "<i></i>".repeat(40);
+    brancher(); raccourcis(); pied(d);
+    $("chargement").hidden = true;
+    const q = new URLSearchParams(location.search);          // ?n=3000&vue=risque&seuils=0.3,0.6 : pour préparer un écran
+    if (q.get("n")) n = Math.min(nFlux, Number(q.get("n")) || 0);
+    const s = (q.get("seuils") || "").split(",").map(Number);
+    montrer(q.get("vue") || "flux");
+    reglerSeuils(s[0] || d.seuils.avertir, s[1] || d.seuils.bloquer);
+    if (n >= nFlux) arreter();
+    if (q.get("lecture")) $("b-lecture").click();
+    requestAnimationFrame(image);
+  } catch (e) {
+    $("chargement").className = "erreur";
+    $("chargement").textContent = "La console n'a pas pu charger le flux : " + e.message + ". Lancez le service avec « bash lancer.sh » puis rechargez la page.";
+  }
+})();
+</script>
+</body>
+</html>
