@@ -575,10 +575,8 @@ async function noterSaisie(ev) {
     const bloque = zone(i) === "bloque";
     $("resultat").innerHTML = "<div class='panneau'><header style='display:flex;gap:1rem;align-items:center;margin-bottom:.6rem'>" +
       "<h2 style='margin:0 auto 0 0;font-size:1.35rem'>" + transaction(i) + "</h2><span class='puce " + (bloque ? "bloque" : "traite") + "'>" + (bloque ? "Bloquée" : "Envoyée") + "</span></header>" +
-      "<p style='margin:0 0 1.1rem'>" + (bloque ? "La transaction a été bloquée avant l'envoi : l'argent n'est pas parti." : "La transaction est partie.") +
-      " Son dossier a été transmis au département risque et conformité.</p>" +
-      "<div class='actions'><button class='bouton principal' id='b-file'>Ouvrir dans Risque et conformité</button></div></div>";
-    $("b-file").onclick = () => { choisi = i; filtre = "attente"; montrer("risque"); };
+      "<p style='margin:0'>" + (bloque ? "La transaction a été bloquée avant l'envoi : l'argent n'est pas parti." : "La transaction est partie.") +
+      " Son dossier a été transmis au département risque et conformité.</p></div>";
     afficherBilan();
   } catch (e) { $("resultat").innerHTML = "<p class='erreur'>Impossible d'envoyer cette transaction : " + esc(e.message) + ".</p>"; }
 }
