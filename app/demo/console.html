@@ -347,6 +347,7 @@ const nombre = (v) => Math.round(v).toLocaleString("fr-FR");
 const pourcent = (v, d = 1) => (100 * v).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %";
 const score2 = (v) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const compte = (id) => /^[A-Za-z]?\d{5,}$/.test(String(id)) ? "Compte n° " + String(id).slice(-5) : String(id);
+const transaction = (i) => "Transaction n° " + String(i + 1).padStart(5, "0");   // rang dans le flux, puis envois à la main
 const heure = (t) => { const j = Math.floor(t / 86400) + 1, h = Math.floor(t % 86400 / 3600), m = Math.floor(t % 3600 / 60);
   return "Jour " + j + ", " + String(h).padStart(2, "0") + " h " + String(m).padStart(2, "0"); };
 const SCENARIOS = { fond: "transfert honnête du trafic normal", fond_mule: "transfert honnête vers un futur compte complice",
@@ -417,7 +418,7 @@ function afficherBilan() {
   const lignes = [];
   for (let i = n - 1; i >= 0 && lignes.length < 7; i--) { const z = zone(i); if (z !== "passe") lignes.push(ligneFil(i, z)); }
   $("fil").innerHTML = lignes.length
-    ? "<table><thead><tr><th>Décision</th><th>Quand</th><th>Destinataire</th><th class='droite'>Montant</th><th class='droite'>Score</th><th>Raison principale</th></tr></thead><tbody>" + lignes.join("") + "</tbody></table>"
+    ? "<table><thead><tr><th>Décision</th><th>Transaction</th><th>Quand</th><th>Destinataire</th><th class='droite'>Montant</th><th class='droite'>Score</th><th>Raison principale</th></tr></thead><tbody>" + lignes.join("") + "</tbody></table>"
     : "<p class='vide'>Aucune alerte pour l'instant. Lancez le flux.</p>";
   const attente = cas().filter((c) => !dossiers.has(c.i)).length;
   $("pastille").hidden = attente === 0; $("pastille").textContent = attente;
@@ -431,7 +432,7 @@ function raisonDe(i) {
 }
 function ligneFil(i, z) {
   const x = T[i];
-  return "<tr><td><span class='puce " + z + "'>" + LIBELLE[z] + "</span></td><td class='nb'>" + heure(x.t) + "</td><td>" + esc(compte(x.dst)) +
+  return "<tr><td><span class='puce " + z + "'>" + LIBELLE[z] + "</span></td><td class='nb'>" + transaction(i) + "</td><td class='nb'>" + heure(x.t) + "</td><td>" + esc(compte(x.dst)) +
     "</td><td class='droite'>" + nombre(x.montant) + "</td><td class='droite'>" + score2(x.score) + "</td><td>" + esc(raisonDe(i)) + "</td></tr>";
 }
 
@@ -524,7 +525,7 @@ function afficherRisque() {
     const puce = d ? (d.statut === "ticket" ? "<span class='puce ticket'>Analyse</span>" : "<span class='puce traite'>Traité</span>")
                    : "<span class='puce " + c.z + "'>" + LIBELLE[c.z] + "</span>";
     return "<button class='cas' data-i='" + c.i + "' aria-current='" + (c.i === choisi) + "'>" + puce +
-      "<span class='qui'>" + esc(compte(x.dst)) + "</span><span class='score'>" + score2(x.score) + "<small>" + nombre(x.montant) + "</small></span>" +
+      "<span class='qui'>" + transaction(c.i) + "</span><span class='score'>" + score2(x.score) + "<small>" + nombre(x.montant) + "</small></span>" +
       "<span class='quoi'>" + esc(raisonDe(c.i)) + "</span></button>";
   }).join("") : "<p class='vide'>" + (filtre === "attente" ? "Rien à traiter. Lancez le flux ou envoyez une transaction." : "Aucun dossier.") + "</p>";
   $("fiche").innerHTML = choisi === null ? "<p class='vide'>Sélectionnez une alerte.</p>" : fiche(choisi, true);
@@ -547,7 +548,7 @@ function fiche(i, avecActions) {
   const decision = sousSurveillance ? "Transfert bloqué : la conformité a placé ce compte sous surveillance."
                  : z === "bloque" ? "Transfert bloqué avant l'envoi : l'argent n'est pas parti."
                  : "Transfert passé : son score est sous le seuil de blocage de l'établissement.";
-  let h = "<header><h2>" + esc(compte(x.dst)) + "</h2><span class='puce " + z + "'>" + LIBELLE[z] + "</span></header>";
+  let h = "<header><h2>" + transaction(i) + "</h2><span class='puce " + z + "'>" + LIBELLE[z] + "</span></header>";
   if (d) {
     const verite = x.fraude === null ? "" : "<p>Vérité de la simulation : " + esc(SCENARIOS[x.scen] || x.scen) + ".</p>";
     if (d.statut === "fraude") h += "<div class='issue fraude'><p><b>Fraude confirmée.</b> Le compte destinataire est placé sous surveillance : tout nouveau transfert vers lui sera bloqué.</p>" + verite + "</div>";
@@ -557,8 +558,8 @@ function fiche(i, avecActions) {
   h += "<div class='jauge'><div class='grand'>" + score2(x.score) + "</div><div>" +
        "<div class='piste' style='--b:" + (100 * seuils.bloquer) + "%;--s:" + (100 * x.score) + "%'><i></i></div>" +
        "<p>" + decision + "</p></div></div>";
-  h += "<ul class='faits'><li><b>" + nombre(x.montant) + "</b>montant du transfert</li><li><b>" + esc(compte(x.src)) + "</b>compte expéditeur</li>" + faits(x) + "</ul>";
-  if (autres) h += "<p class='note' style='margin:0 0 1rem'>" + autres + " autre" + (autres > 1 ? "s alertes concernent" : " alerte concerne") + " ce même compte. La décision s'appliquera à toutes.</p>";
+  h += "<ul class='faits'><li><b>" + nombre(x.montant) + "</b>montant du transfert</li><li><b>" + esc(compte(x.src)) + "</b>compte expéditeur</li><li><b>" + esc(compte(x.dst)) + "</b>compte destinataire</li>" + faits(x) + "</ul>";
+  if (autres) h += "<p class='note' style='margin:0 0 1rem'>" + autres + " autre" + (autres > 1 ? "s transactions concernent" : " transaction concerne") + " ce même compte destinataire. La décision s'appliquera à toutes.</p>";
   if (avecActions) h += "<div class='actions'>" + (d
       ? "<button class='bouton' data-action='annuler'>Annuler cette décision</button>"
       : "<button class='bouton fraude' data-action='fraude'>Fraude confirmée</button><button class='bouton libre' data-action='libre'>" + (z === "bloque" ? "Fausse alerte, libérer" : "Rien à signaler") +
