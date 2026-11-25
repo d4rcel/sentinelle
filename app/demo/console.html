@@ -192,6 +192,11 @@ footer { max-width: 96rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2.5rem) 2
 footer p { margin: 0.25rem 0; max-width: 100ch; }
 .erreur { background: var(--bloque-fond); color: var(--bloque); padding: 1rem 1.25rem; border-radius: 12px; font-weight: 600; }
 
+/* ------------------------------------------------------------------ page « sans Sentinelle » (/demo/sans) */
+.sans .onglets, .sans .repere.porte, .sans #p-reglage, .sans #p-fil { display: none; }
+.sans .deux { grid-template-columns: 1fr; }
+.sans .marque strong::before { background: var(--passe); box-shadow: 0 0 0 4px var(--fond); }
+
 @media (max-width: 44rem) {
   .atelier { grid-template-columns: 1fr; }
   .file { max-height: 22rem; }
@@ -231,7 +236,7 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
       <div class="repere entree">Transferts traités<b id="n-traites">0</b></div>
       <div class="repere porte">Sentinelle</div>
       <div class="repere voie v-passe">Passent<b id="n-passe">0</b></div>
-      <div class="repere voie v-bloque">Bloqués avant l'envoi<b id="n-bloque">0</b></div>
+      <div class="repere voie v-bloque"><span id="l-bloque">Bloqués avant l'envoi</span><b id="n-bloque">0</b></div>
     </div>
 
     <div class="commandes">
@@ -247,7 +252,7 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
     </div>
 
     <div class="deux">
-      <div class="panneau">
+      <div class="panneau" id="p-reglage">
         <h2>Le réglage de l'établissement</h2>
         <div class="histo" id="histo" aria-hidden="true"></div>
         <div class="axe"><span>Score 0, aucun risque</span><span>Score 1, risque maximal</span></div>
@@ -266,7 +271,7 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
       </div>
 
       <div class="panneau">
-        <h2>Ce que ce réglage donne sur ce trafic</h2>
+        <h2 id="t-bilan">Ce que ce réglage donne sur ce trafic</h2>
         <div class="bilan" style="grid-template-columns:1fr">
           <div>
             <h3>Arnaques arrêtées</h3>
@@ -279,11 +284,11 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
             </ul>
           </div>
         </div>
-        <p class="note">On connaît la vérité de chaque transfert parce que les données sont simulées. En production, elle viendrait des plaintes et des décisions des analystes.</p>
+        <p class="note" id="note-bilan">On connaît la vérité de chaque transfert parce que les données sont simulées. En production, elle viendrait des plaintes et des décisions des analystes.</p>
       </div>
     </div>
 
-    <div class="panneau">
+    <div class="panneau" id="p-fil">
       <h2>Dernières décisions automatiques</h2>
       <div id="fil"></div>
     </div>
@@ -337,6 +342,9 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
 
 <script>
 "use strict";
+// Sur /demo/sans, la page rejoue le même flux sans Sentinelle : rien n'est noté, tout passe.
+const SANS = location.pathname.replace(/\/+$/, "").endsWith("/sans");
+
 // ---------------------------------------------------------------------------- état
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -365,7 +373,7 @@ let filtre = "attente", choisi = null, numeroTicket = 2611;
 const mouvementReduit = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Plusieurs fenêtres de la console (flux d'un côté, risque de l'autre) partagent le même état.
-const canal = "BroadcastChannel" in window ? new BroadcastChannel("sentinelle-console") : null;
+const canal = !SANS && "BroadcastChannel" in window ? new BroadcastChannel("sentinelle-console") : null;
 function publier(extra) {
   if (canal) canal.postMessage(Object.assign({ n, seuil: seuils.bloquer, saisies: T.slice(nFlux), dossiers: [...dossiers],
     surveilles: [...surveilles], confiance: [...confiance], ticket: numeroTicket }, extra || {}));
@@ -388,6 +396,7 @@ function recevoir(m) {
 
 // Décision automatique pour le transfert de rang i, selon les seuils et les listes de la conformité.
 function zone(i) {
+  if (SANS) return "passe";
   const x = T[i];
   if (surveilles.has(x.dst) && i > surveilles.get(x.dst)) return "bloque";
   if (confiance.has(x.dst) && i > confiance.get(x.dst)) return "passe";
@@ -412,7 +421,7 @@ function bilan() {
 function afficherBilan() {
   const b = bilan();
   $("n-traites").textContent = nombre(n); $("n-passe").textContent = nombre(b.passe);
-  $("n-bloque").textContent = nombre(b.bloque);
+  $("n-bloque").textContent = nombre(SANS ? b.v.passe : b.bloque);
   const nv = b.v.passe + b.v.bloque;
   $("k-arretees").textContent = b.v.bloque; $("k-arnaques").textContent = nv;
   $("k-v-bloque").textContent = b.v.bloque; $("k-v-passe").textContent = b.v.passe;
@@ -458,14 +467,16 @@ const TEINTE = { passe: "#6F7F98", averti: "#F2A93B", bloque: "#F0564B" };
 function lancer(i) {
   if (mouvementReduit) return;
   const z = zone(i);
-  if (z === "passe" && Math.random() > Math.min(1, 28 / vitesse)) return;   // à grande vitesse, on ne dessine qu'un échantillon
+  const arnaque = SANS && T[i].victime;                                      // sans Sentinelle, on suit l'arnaque qui passe
+  if (z === "passe" && !arnaque && Math.random() > Math.min(1, 28 / vitesse)) return;   // à grande vitesse, on ne dessine qu'un échantillon
   if (particules.length > 500) return;
-  particules.push({ z, y0: H * (0.2 + 0.36 * Math.random()), ecart: (Math.random() - 0.5) * H * (z === "passe" ? 0.3 : 0.05),
+  particules.push({ z, arnaque, y0: H * (0.2 + 0.36 * Math.random()), ecart: (Math.random() - 0.5) * H * (z === "passe" ? 0.3 : 0.05),
                     r: Math.max(2.2, Math.min(6, Math.log10(T[i].montant + 10) - 2.2)), t: 0 });
 }
 function dessiner(dt) {
   ctx.clearRect(0, 0, L, H);
   const px = L * 0.42;
+  if (SANS) { voler(dt, px); return; }
   // voies
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(240,86,75,.18)";
@@ -481,15 +492,19 @@ function dessiner(dt) {
   for (let k = 0; k < Math.min(pile, parRang * 3); k++) {
     ctx.beginPath(); ctx.arc(px + 16 + (k % parRang) * pas, H * VOIE.bloque - 10 + Math.floor(k / parRang) * 10, 3.4, 0, 7); ctx.fill();
   }
+  voler(dt, px);
+}
+function voler(dt, px) {
   // les transferts en mouvement
   const duree = 1.9;
   for (const p of particules) {
     p.t += dt / duree;
     const u = Math.min(1, p.t), x = -8 + u * (L + 16);
-    let y = p.y0, couleur = "#93A2BC";
+    let y = p.y0, couleur = p.arnaque ? TEINTE.bloque : "#93A2BC";
+    if (p.arnaque) { ctx.fillStyle = "rgba(240,86,75,.25)"; ctx.beginPath(); ctx.arc(x, y, p.r + 6, 0, 7); ctx.fill(); }
     if (x > px) {
       const v = Math.min(1, (x - px) / (L * 0.16)), e = v * v * (3 - 2 * v);
-      y = p.y0 + (H * VOIE[p.z] + p.ecart - p.y0) * e; couleur = TEINTE[p.z];
+      y = p.y0 + (H * VOIE[p.z] + p.ecart - p.y0) * e; couleur = p.arnaque ? TEINTE.bloque : TEINTE[p.z];
       if (p.z === "bloque" && v >= 1) { p.t = 2; continue; }      // arrivé dans la retenue
     }
     if (p.z !== "passe" && x > px) { ctx.fillStyle = "rgba(240,86,75,.25)";
@@ -611,7 +626,8 @@ async function noterSaisie(ev) {
 
 // ---------------------------------------------------------------------------- navigation et commandes
 function montrer(vue) {
-  if (location.hash.slice(1) !== vue) history.replaceState(null, "", "#" + vue);     // l'adresse retient la vue ouverte
+  if (SANS) vue = "flux";
+  if (!SANS && location.hash.slice(1) !== vue) history.replaceState(null, "", "#" + vue);     // l'adresse retient la vue ouverte
   for (const v of ["flux", "risque", "unique"]) $("vue-" + v).hidden = v !== vue;
   document.querySelectorAll(".onglets button").forEach((b) => b.setAttribute("aria-selected", b.dataset.vue === vue));
   document.querySelectorAll(".filtres button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.filtre === filtre));
@@ -666,6 +682,14 @@ function preparees() {
     T = d.transferts; nFlux = T.length; seuilsMesures = d.seuils;
     $("histo").innerHTML = "<i></i>".repeat(40);
     brancher(); preparees();
+    if (SANS) {
+      document.body.classList.add("sans"); document.title = "Le même trafic, sans Sentinelle";
+      document.querySelector(".marque span").textContent = "Le même trafic, sans Sentinelle";
+      document.querySelector("#vue-flux h1").textContent = "Sans Sentinelle, tout part";
+      document.querySelector("#vue-flux .intro").textContent = "Le même trafic, sans contrôle sur le comportement du compte destinataire. Aucun transfert n'est noté, aucun n'est retenu.";
+      $("l-bloque").textContent = "Arnaques parties"; $("t-bilan").textContent = "Ce que l'établissement laisse partir";
+      $("note-bilan").textContent = "Sans contrôle avant l'envoi, l'établissement découvre ces arnaques plus tard, par les plaintes de ses clients, quand l'argent est déjà sorti. On connaît ici la vérité de chaque transfert parce que les données sont simulées.";
+    }
     $("chargement").hidden = true;
     const q = new URLSearchParams(location.search);          // ?n=3000&vue=risque&seuil=0.6 : pour préparer un écran
     if (q.get("n")) n = Math.min(nFlux, Number(q.get("n")) || 0);

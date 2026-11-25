@@ -35,7 +35,7 @@ def test_montant_invalide_refuse(client):
 
 
 def test_console_institution(client):
-    assert "Sentinelle" in client.get("/demo").text
+    assert "Sentinelle" in client.get("/demo").text and client.get("/demo/sans").status_code == 200
     d = client.get("/demo/donnees").json()
     t = d["transferts"]
     assert len(t) > 0 and 0 < d["seuils"]["avertir"] <= d["seuils"]["bloquer"]

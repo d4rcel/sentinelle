@@ -75,6 +75,11 @@ Déroulé conseillé en deux minutes : lancer le flux en vitesse « Rapide », p
 « Bloquer tôt » pour montrer le prix d'un seuil trop bas, ouvrir « Risque et conformité », confirmer une
 fraude, libérer une fausse alerte, puis envoyer une transaction préparée.
 
+Si le jury demande « et sans votre solution ? » : ouvrir http://127.0.0.1:8000/demo/sans. La page rejoue
+le même flux sans Sentinelle : rien n'est noté, tout passe, et un compteur suit les arnaques parties. Elle
+est indépendante de la console. À dire : « sans contrôle sur le comportement du compte destinataire », car
+un établissement a déjà d'autres règles, comme des plafonds de montant.
+
 Présentation sur deux fenêtres : ouvrir http://127.0.0.1:8000/demo#flux d'un côté et
 http://127.0.0.1:8000/demo#risque de l'autre, dans le même navigateur. Les fenêtres partagent leur état :
 un transfert bloqué à gauche apparaît aussitôt dans la file à droite, et une décision de l'analyste est

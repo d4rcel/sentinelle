@@ -126,6 +126,12 @@ def page_console():
     return FileResponse(config.RACINE / "demo" / "console.html", media_type="text/html")
 
 
+@app.get("/demo/sans", include_in_schema=False)
+def page_sans_sentinelle():
+    """Le même flux sans Sentinelle : tout passe. Même page, qui lit son mode dans l'adresse."""
+    return FileResponse(config.RACINE / "demo" / "console.html", media_type="text/html")
+
+
 @app.get("/demo/donnees")
 def donnees_console():
     """Le flux de démo noté transfert par transfert. Les seuils sont appliqués par la console."""
