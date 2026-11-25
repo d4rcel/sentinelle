@@ -15,107 +15,133 @@
   "dst_part_sorties_rapides",
   "dst_min_depuis_entree",
   "montant_vs_habitude_dst",
-  "src_anciennete_j",
   "src_nb_envois",
-  "src_nb_envois_10min",
-  "src_recu_30min_vs_montant"
+  "src_nb_envois_10min"
  ],
- "seuil_alerte": 0.682828426361084,
- "seuil_blocage": 0.9237673282623291,
+ "seuil_alerte": 0.7274919152259827,
+ "seuil_blocage": 0.7798614501953125,
  "mesures": {
   "decoupage": {
    "entrainement": {
-    "transferts": 527818,
-    "fraudes": 3209
+    "transferts": 311740,
+    "fraudes": 1609
    },
    "validation": {
-    "transferts": 19929,
-    "fraudes": 737
+    "transferts": 67317,
+    "fraudes": 269
    },
    "test": {
-    "transferts": 20924,
-    "fraudes": 722
+    "transferts": 140040,
+    "fraudes": 951
    }
   },
-  "precision_moyenne": 0.9028,
-  "hasard": 0.0345,
-  "fraudes_signalees": 0.8643,
-  "fraudes_bloquees": 0.8476,
-  "fausses_alertes": 0.0121,
-  "faux_blocages": 0.0007,
-  "alertes_justes": 0.7189,
+  "precision_moyenne": 0.6581,
+  "hasard": 0.0068,
+  "jours": {
+   "validation": 11,
+   "test": 13,
+   "fin_test": 17
+  },
+  "victimes": {
+   "transferts": 684,
+   "signalees": 0.7193,
+   "bloquees": 0.7091
+  },
+  "fraudes_signalees": 0.6435,
+  "fraudes_bloquees": 0.6193,
+  "fausses_alertes": 0.0097,
+  "faux_blocages": 0.0009,
+  "alertes_justes": 0.313,
+  "reference_simple": {
+   "regle": "alerter si le compte destinataire a déjà fait ressortir de l'argent moins de 30 minutes après l'avoir reçu",
+   "victimes_signalees": 0.5029,
+   "fraudes_signalees": 0.3922,
+   "fausses_alertes": 0.0024,
+   "alertes_justes": 0.5231
+  },
   "scenario_cache": {
    "nom": "S4_chaine",
-   "part_alertee": 0.8721,
-   "transferts": 172
+   "part_alertee": 0.3333,
+   "transferts": 195,
+   "victimes": {
+    "alertes": 3,
+    "total": 43
+   }
   },
   "premier_transfert_mule_vierge": {
-   "alertes": 3,
-   "total": 39
+   "alertes": 23,
+   "total": 85
   },
   "par_scenario": [
    {
     "scen": "L_commerce",
-    "transferts": 2344,
+    "transferts": 1579,
     "fraudes": 0,
     "part_alertee": 0.0,
     "part_bloquee": 0.0
    },
    {
     "scen": "L_etudiant",
-    "transferts": 194,
+    "transferts": 322,
     "fraudes": 0,
-    "part_alertee": 0.0,
+    "part_alertee": 0.0497,
     "part_bloquee": 0.0
    },
    {
     "scen": "L_nouveau",
-    "transferts": 1157,
+    "transferts": 837,
     "fraudes": 0,
-    "part_alertee": 0.0536,
-    "part_bloquee": 0.0104
+    "part_alertee": 0.086,
+    "part_bloquee": 0.0215
    },
    {
     "scen": "L_tontine",
-    "transferts": 1953,
+    "transferts": 1894,
     "fraudes": 0,
-    "part_alertee": 0.0,
-    "part_bloquee": 0.0
+    "part_alertee": 0.0026,
+    "part_bloquee": 0.0021
    },
    {
     "scen": "S1_erreur",
-    "transferts": 96,
-    "fraudes": 96,
-    "part_alertee": 0.8958,
-    "part_bloquee": 0.875
+    "transferts": 101,
+    "fraudes": 101,
+    "part_alertee": 0.495,
+    "part_bloquee": 0.495
    },
    {
     "scen": "S2_faux_agent",
-    "transferts": 112,
-    "fraudes": 112,
-    "part_alertee": 0.7411,
-    "part_bloquee": 0.7321
+    "transferts": 201,
+    "fraudes": 201,
+    "part_alertee": 0.7363,
+    "part_bloquee": 0.7264
    },
    {
     "scen": "S3_collecteur",
-    "transferts": 342,
-    "fraudes": 342,
-    "part_alertee": 0.8918,
-    "part_bloquee": 0.8743
+    "transferts": 454,
+    "fraudes": 454,
+    "part_alertee": 0.7687,
+    "part_bloquee": 0.7555
    },
    {
     "scen": "S4_chaine",
-    "transferts": 172,
-    "fraudes": 172,
-    "part_alertee": 0.8721,
-    "part_bloquee": 0.8547
+    "transferts": 195,
+    "fraudes": 195,
+    "part_alertee": 0.3333,
+    "part_bloquee": 0.2564
    },
    {
     "scen": "fond",
-    "transferts": 14554,
+    "transferts": 134314,
     "fraudes": 0,
-    "part_alertee": 0.0125,
-    "part_bloquee": 0.0002
+    "part_alertee": 0.0093,
+    "part_bloquee": 0.0008
+   },
+   {
+    "scen": "fond_mule",
+    "transferts": 143,
+    "fraudes": 0,
+    "part_alertee": 0.049,
+    "part_bloquee": 0.0
    }
   ]
  },
@@ -123,22 +149,21 @@
  "scenario_cache": "S4_chaine",
  "seed": 42,
  "n_par_scenario": 300,
- "origine": "entraîné sur Kaggle le 24 novembre 2026 (CPU, XGBoost 3.4.1), téléchargé depuis le notebook « Sentinelle V1 - XGBoost »",
+ "origine": "entraîné sur cette machine, sur CPU",
  "temps_s": {
-  "signaux_cpu_kaggle": 8.0,
-  "xgb_cpu_kaggle": 6.15,
-  "xgb_gros_cpu_kaggle": 133.6,
-  "signaux_cpu_local": 9.33
+  "signaux_cpu_local": 2.9,
+  "signaux_cpu": 2.9,
+  "xgb_cpu": 2.3
  },
- "integre_le": "2026-11-24T14:21:43",
+ "integre_le": "2026-11-25T09:20:41",
  "versions": {
   "xgboost": "3.4.1",
   "pandas": "3.1.1",
   "numpy": "2.5.5"
  },
  "demo": {
-  "transferts_flux": 6823,
-  "comptes_flux": 12620,
+  "transferts_flux": 7432,
+  "comptes_flux": 14722,
   "cas": [
    "arnaque",
    "collecteur",
@@ -146,6 +171,5 @@
    "commerce",
    "limite"
   ]
- },
- "seuil_alerte_du_notebook": 0.6828281879425049
+ }
 }

@@ -17,7 +17,12 @@ def test_fichiers_produits(monde):
     meta = json.loads((d / "sentinelle_v1.json").read_text(encoding="utf-8"))
     assert meta["signaux"] == NOMS
     assert 0 < meta["seuil_alerte"] <= meta["seuil_blocage"]
-    assert meta["mesures"]["decoupage"]["test"]["transferts"] > 0
+    m = meta["mesures"]
+    assert m["decoupage"]["test"]["transferts"] > 0
+    assert "src_anciennete_j" not in NOMS and "src_recu_30min_vs_montant" not in NOMS
+    # La référence simple et les mesures sur les seules victimes doivent toujours être publiées.
+    assert 0 <= m["reference_simple"]["victimes_signalees"] <= 1 and m["victimes"]["transferts"] > 0
+    assert m["scenario_cache"]["victimes"]["total"] <= m["scenario_cache"]["transferts"]
 
 
 def test_verdict_complet(monde):

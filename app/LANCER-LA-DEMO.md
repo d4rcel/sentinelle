@@ -23,8 +23,9 @@ L'intégration lit les 6,3 millions de lignes : prévoir quelques gigaoctets de 
 
 ## D'où vient le modèle
 
-`modeles/sentinelle_v1.ubj` a été entraîné sur Kaggle le 24 novembre 2026 par le notebook
-`notebooks/sentinelle_v1_kaggle.ipynb`, puis téléchargé. Le service ne l'entraîne jamais : il le
+`modeles/sentinelle_v1.ubj` a été entraîné sur CPU le 25 novembre 2026 avec `bash lancer.sh entrainer`
+(17 signaux, découpage sur les jours pleins). Le notebook `notebooks/sentinelle_v1_kaggle.ipynb` décrit
+la version précédente (19 signaux, test sur les jours 24 à 30) et reste à réaligner. Le service ne l'entraîne jamais : il le
 charge, et il tourne sans GPU.
 
 Pour le remplacer par un modèle entraîné sur GPU (Kaggle ou machine du hackathon) :
@@ -64,13 +65,13 @@ Routes : `POST /noter` (verdict, sans rien enregistrer), `POST /transferts` et `
 | Onglet | Ce qu'il montre |
 |---|---|
 | L'arnaque en direct | Cinq situations tirées de la période de test : deux arnaques signalées, deux cas légitimes qui passent, et la limite (une mule toute neuve, non détectée). L'interrupteur « Sentinelle activée » montre la différence avec et sans. |
-| Une journée rejouée | Tous les transferts du premier jour de test, notés un par un. Compteurs d'alertes, de fausses alertes et d'argent envoyé à des fraudeurs, avec et sans Sentinelle. |
+| Trois heures rejouées | Tous les transferts de trois heures du premier jour de test, notés un par un. Compteurs d'alertes, de fausses alertes et d'argent envoyé à des fraudeurs, avec et sans Sentinelle. |
 | Bac à sable | Un monde vide pour inventer des comptes, enregistrer des transferts et des retraits, et voir le score réagir. |
 | Mesures et limites | Les mesures du modèle chargé, par scénario, et le contrôle « le modèle intégré est-il celui évalué ? ». |
 
 Déroulé conseillé en trois minutes : situation 1 avec Sentinelle coupée (confirmer, voir l'argent
 partir), puis la même avec Sentinelle activée ; situation 3 pour montrer qu'une tontine passe ;
-situation 5 pour dire la limite ; puis « Jouer toute la journée » pour les chiffres.
+situation 5 pour dire la limite ; puis « Jouer tout le flux » pour les chiffres.
 
 ## Ce qu'il ne faut pas faire dire à cette démo
 
@@ -78,7 +79,10 @@ situation 5 pour dire la limite ; puis « Jouer toute la journée » pour les ch
   montants et nombre de mules sont nos hypothèses. Aucune connexion à la vraie PI-SPI.
 - Les montants suivent PaySim, dont la monnaie est masquée. Le « F » de l'écran est une commodité.
 - « Avec Sentinelle » suppose que chaque expéditeur alerté renonce à son transfert.
-- Le premier transfert vers une mule qui n'a encore rien fait n'est presque jamais détecté.
+- Le premier transfert vers une mule qui n'a encore rien fait est rarement détecté.
+- Sur 100 alertes, environ un tiers visent une vraie fraude : ne jamais dire « compte frauduleux »,
+  dire « transaction à risque ». Le modèle signale, le prestataire de paiement décide.
+- Une chaîne de mules jamais vue à l'entraînement lui échappe presque entièrement.
 - Tant qu'aucun entraînement n'a tourné sur GPU, il n'y a pas de gain GPU à annoncer.
 
 ## Où est quoi
@@ -86,7 +90,7 @@ situation 5 pour dire la limite ; puis « Jouer toute la journée » pour les ch
 | Fichier | Rôle |
 |---|---|
 | `sentinelle/donnees.py` | PaySim et injection des scénarios (même code et même graine que le notebook) |
-| `sentinelle/signaux.py` | Les 19 signaux, calculés par lot (numpy sur CPU, cupy sur GPU) |
+| `sentinelle/signaux.py` | Les 17 signaux, calculés par lot (numpy sur CPU, cupy sur GPU) |
 | `sentinelle/magasin.py` | L'historique des comptes en mémoire et les mêmes signaux, un transfert à la fois |
 | `sentinelle/moteur.py` | Charge le modèle, rend score, décision et raisons |
 | `sentinelle/raisons.py` | Les phrases de la raison lisible |
