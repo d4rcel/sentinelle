@@ -257,12 +257,12 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
           <button class="bouton" data-reglage="mesure">Recommandé</button>
           <button class="bouton" data-reglage="tard">Bloquer tard</button>
         </div>
-        <p class="note">Plus le seuil est bas, plus on arrête d'arnaques, mais plus on bloque de clients honnêtes. Les barres montrent combien de transferts ont reçu chaque score ; les rouges sont bloqués. Déplacer le seuil reclasse aussitôt tout le trafic déjà traité.</p>
+        <p class="note">Plus le seuil est bas, plus Sentinelle bloque de transferts. Les barres montrent combien de transferts ont reçu chaque score ; les rouges sont bloqués. Déplacer le seuil reclasse aussitôt tout le trafic déjà traité.</p>
       </div>
 
       <div class="panneau">
         <h2>Ce que ce réglage donne sur ce trafic</h2>
-        <div class="bilan">
+        <div class="bilan" style="grid-template-columns:1fr">
           <div>
             <h3>Arnaques arrêtées</h3>
             <div class="grand"><span id="k-arretees">0</span> <small>sur <span id="k-arnaques">0</span></small></div>
@@ -270,14 +270,6 @@ footer p { margin: 0.25rem 0; max-width: 100ch; }
               <li><span>Bloquées avant l'envoi</span><b class="ok" id="k-v-bloque">0</b></li>
               <li><span>Passées sans alerte</span><b class="mal" id="k-v-passe">0</b></li>
               <li><span>Montant des victimes retenu</span><b id="k-montant">0 %</b></li>
-            </ul>
-          </div>
-          <div>
-            <h3>Clients honnêtes bloqués à tort</h3>
-            <div class="grand"><span id="k-genes">0</span> <small>sur <span id="k-honnetes">0</span></small></div>
-            <ul class="detail">
-              <li><span>Clients honnêtes qui passent</span><b class="ok" id="k-h-passe">0</b></li>
-              <li><span>Part du trafic honnête bloquée</span><b id="k-taux">0 %</b></li>
               <li><span>Transferts entre complices interceptés</span><b id="k-complices">0</b></li>
             </ul>
           </div>
@@ -394,13 +386,10 @@ function afficherBilan() {
   const b = bilan();
   $("n-traites").textContent = nombre(n); $("n-passe").textContent = nombre(b.passe);
   $("n-bloque").textContent = nombre(b.bloque);
-  const nv = b.v.passe + b.v.bloque, nh = b.h.passe + b.h.bloque;
+  const nv = b.v.passe + b.v.bloque;
   $("k-arretees").textContent = b.v.bloque; $("k-arnaques").textContent = nv;
   $("k-v-bloque").textContent = b.v.bloque; $("k-v-passe").textContent = b.v.passe;
   $("k-montant").textContent = b.montantV ? pourcent(b.montantRetenu / b.montantV, 0) : "0 %";
-  $("k-genes").textContent = nombre(b.h.bloque); $("k-honnetes").textContent = nombre(nh);
-  $("k-h-passe").textContent = nombre(b.h.passe);
-  $("k-taux").textContent = nh ? pourcent(b.h.bloque / nh, 2) : "0 %";
   $("k-complices").textContent = b.complices;
   pile = b.bloque;
   // histogramme (échelle en racine, sinon les scores proches de zéro écrasent tout)
