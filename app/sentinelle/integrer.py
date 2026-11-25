@@ -18,7 +18,7 @@ import pandas as pd
 
 from . import config, donnees
 from .config import JOUR
-from .signaux import NOMS, preparer_evenements, signaux
+from .signaux import NOMS, expediteur_relais, preparer_evenements, signaux
 
 
 class Contexte:
@@ -40,8 +40,11 @@ class Contexte:
         cache = self.meta["scen"] == config.SCENARIO_CACHE
         self.app = ((jour < config.JOUR_VALIDATION) & ~cache).to_numpy()   # scénario caché retiré
         self.val = ((jour >= config.JOUR_VALIDATION) & (jour < config.JOUR_TEST) & ~cache).to_numpy()
-        self.test = (jour >= config.JOUR_TEST).to_numpy()                 # scénario caché compris
+        self.test = ((jour >= config.JOUR_TEST) & (jour < config.JOUR_FIN_TEST)).to_numpy()   # scénario caché compris
         self.y = self.meta["y"].to_numpy()
+        # Transfert d'une victime : frauduleux, et l'expéditeur n'est pas un relais qui fait suivre
+        # de l'argent reçu. C'est le seul transfert que Sentinelle peut encore empêcher.
+        self.victime = (self.y == 1) & ~expediteur_relais(**self.ev)
         journal(f"{len(self.tout):,} opérations, {len(self.X):,} transferts à noter, "
                 f"{int(self.y.sum()):,} frauduleux ; signaux calculés en {self.temps_signaux:.1f} s "
                 f"(total {time.perf_counter() - t0:.0f} s)")
@@ -63,6 +66,14 @@ def noter_tout(booster, X):
     return booster.predict(xgb.DMatrix(X.to_numpy(), feature_names=NOMS), iteration_range=plage_d_arbres(booster))
 
 
+REGLE_SIMPLE = "alerter si le compte destinataire a déjà fait ressortir de l'argent moins de 30 minutes après l'avoir reçu"
+
+
+def regle_simple(X):
+    """La référence simple : une seule règle, écrite à la main, sans apprentissage."""
+    return (X["dst_sorties_rapides"] >= 1).to_numpy()
+
+
 def mesurer(ctx, score):
     """Seuils réglés sur la validation, mesures sur le test."""
     from sklearn.metrics import average_precision_score
@@ -72,12 +83,14 @@ def mesurer(ctx, score):
     seuil_blocage = max(float(np.quantile(sains_val, 1 - config.FAUX_BLOCAGES)), seuil_alerte)
     res = meta[ctx.test].assign(score=score[ctx.test])
     res["alerte"], res["blocage"] = res["score"] >= seuil_alerte, res["score"] >= seuil_blocage
+    res["victime"], res["regle"] = ctx.victime[ctx.test], regle_simple(X)[ctx.test]
     par_scen = res.groupby("scen").agg(transferts=("y", "size"), fraudes=("y", "sum"),
                                        part_alertee=("alerte", "mean"), part_bloquee=("blocage", "mean"))
     fraude, sain = res[res["y"] == 1], res[res["y"] == 0]
-    vierge = res[(res["y"] == 1) & (X.loc[res.index, "dst_nb_recus"] == 0)
-                 & (X.loc[res.index, "src_recu_30min_vs_montant"] == 0)]
+    victimes = res[res["victime"]]
+    vierge = victimes[X.loc[victimes.index, "dst_nb_recus"] == 0]
     cache = res[res["scen"] == config.SCENARIO_CACHE]
+    cache_victimes = cache[cache["victime"]]
     alertes = res[res["alerte"]]
 
     def part(serie):
@@ -90,11 +103,20 @@ def mesurer(ctx, score):
                           for nom, m in (("entrainement", ctx.app), ("validation", ctx.val), ("test", ctx.test))},
             "precision_moyenne": round(float(average_precision_score(res["y"], res["score"])), 4),
             "hasard": round(float(res["y"].mean()), 4),
+            "jours": {"validation": config.JOUR_VALIDATION, "test": config.JOUR_TEST, "fin_test": config.JOUR_FIN_TEST},
+            # Mesure principale : les transferts de victimes, les seuls que l'on peut encore arrêter.
+            "victimes": {"transferts": int(len(victimes)), "signalees": part(victimes["alerte"]),
+                         "bloquees": part(victimes["blocage"])},
             "fraudes_signalees": part(fraude["alerte"]), "fraudes_bloquees": part(fraude["blocage"]),
             "fausses_alertes": part(sain["alerte"]), "faux_blocages": part(sain["blocage"]),
             "alertes_justes": part(alertes["y"]),
+            # La référence simple demandée par le jury, mesurée sur les mêmes transferts.
+            "reference_simple": {"regle": REGLE_SIMPLE, "victimes_signalees": part(victimes["regle"]),
+                                 "fraudes_signalees": part(fraude["regle"]), "fausses_alertes": part(sain["regle"]),
+                                 "alertes_justes": part(res[res["regle"]]["y"])},
             "scenario_cache": {"nom": config.SCENARIO_CACHE, "part_alertee": part(cache["alerte"]),
-                               "transferts": int(len(cache))},
+                               "transferts": int(len(cache)),
+                               "victimes": {"alertes": int(cache_victimes["alerte"].sum()), "total": int(len(cache_victimes))}},
             "premier_transfert_mule_vierge": {"alertes": int(vierge["alerte"].sum()), "total": int(len(vierge))},
             "par_scenario": [dict(scen=s, transferts=int(r.transferts), fraudes=int(r.fraudes),
                                   part_alertee=round(float(r.part_alertee), 4),
@@ -115,12 +137,13 @@ def exporter_demo(ctx, score, seuil_alerte, dossier):
     """Écrit le flux d'une journée de test, l'historique de ses comptes et quelques cas choisis."""
     tout, ev, X, meta = ctx.tout, ctx.ev, ctx.X, ctx.meta
     t, src, dst = ev["t"], ev["src"], ev["dst"]
-    victime = (ctx.y == 1) & (X["src_recu_30min_vs_montant"].to_numpy() == 0)   # premier maillon : une vraie victime
+    victime = ctx.victime                                                       # premier maillon : une vraie victime
     score_tout = np.full(len(tout), np.nan); score_tout[ctx.idx_tr] = score
     victime_tout = np.zeros(len(tout), bool); victime_tout[ctx.idx_tr] = victime
 
-    # --- Flux : tous les transferts du premier jour de test, à leurs vraies proportions.
-    t0, t1 = config.JOUR_TEST * JOUR, (config.JOUR_TEST + 1) * JOUR
+    # --- Flux : quelques heures du premier jour de test, à leurs vraies proportions.
+    t0 = config.JOUR_TEST * JOUR + config.DEMO_DEBUT_H * 3600
+    t1 = t0 + config.DEMO_DUREE_H * 3600
     dans_flux = ev["est_tr"] & (t >= t0) & (t < t1)
     comptes = np.union1d(src[dans_flux], dst[dans_flux])
     concerne = np.isin(src, comptes) | np.isin(dst, comptes)
@@ -201,8 +224,14 @@ def integrer(dossier=None, ctx=None, paysim=None, origine=None, journal=print):
                 f"{meta['seuil_alerte']:.4f}" + ("" if ecart < 0.01 else "  <-- ÉCART : les données diffèrent de celles du notebook"))
         fichier_meta.write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
     journal(f"Test : précision moyenne {m['precision_moyenne']:.3f} (hasard {m['hasard']:.3f}) ; "
-            f"fraudes signalées {m['fraudes_signalees']:.1%} ; fausses alertes {m['fausses_alertes']:.2%}")
-    journal(f"Scénario caché {config.SCENARIO_CACHE} : {m['scenario_cache']['part_alertee']:.1%} alerté")
+            f"transferts de victimes signalés {m['victimes']['signalees']:.1%} ; "
+            f"fausses alertes {m['fausses_alertes']:.2%} ; alertes justes {m['alertes_justes']:.1%}")
+    r = m["reference_simple"]
+    journal(f"Référence simple : transferts de victimes signalés {r['victimes_signalees']:.1%} ; "
+            f"fausses alertes {r['fausses_alertes']:.2%} ; alertes justes {r['alertes_justes']:.1%}")
+    c = m["scenario_cache"]
+    journal(f"Scénario caché {config.SCENARIO_CACHE} : {c['victimes']['alertes']} transferts de victimes signalés "
+            f"sur {c['victimes']['total']} (tous transferts de la chaîne : {c['part_alertee']:.1%})")
     v = m["premier_transfert_mule_vierge"]
     journal(f"Premier transfert vers une mule vierge : {v['alertes']} alertés sur {v['total']}")
     if m["precision_moyenne"] > 0.99:

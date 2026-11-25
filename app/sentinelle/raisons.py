@@ -54,14 +54,10 @@ def _phrase(nom, s, montant_eleve):
         return "le montant est bien plus élevé que ce que ce compte reçoit d'habitude" if v >= 3 else None
     if nom == "montant":
         return "le montant est élevé" if montant_eleve is not None and v >= montant_eleve else None
-    if nom == "src_anciennete_j":
-        return "le compte expéditeur n'a aucune activité connue" if v < 0 else None
     if nom == "src_nb_envois":
         return f"l'expéditeur a déjà envoyé {_n(v)} transferts" if v >= 3 else None
     if nom == "src_nb_envois_10min":
         return f"l'expéditeur enchaîne les transferts : {_n(v) + 1} en moins de 10 minutes" if v >= 1 else None
-    if nom == "src_recu_30min_vs_montant":
-        return "l'expéditeur vient lui-même de recevoir de l'argent, qu'il fait suivre aussitôt" if v > 0 else None
     return None
 
 

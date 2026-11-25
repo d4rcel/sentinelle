@@ -85,7 +85,6 @@ class Magasin:
         ho = bisect_left(cd.out_t, t)
         nb_out, rapides = ho, sum(cd.out_rapide[:ho])
         he = bisect_left(cs.env_t, t)
-        hs, ls = bisect_left(cs.in_t, t), bisect_left(cs.in_t, max(t - 1800, 0))
         f = {
             "montant": a,
             "premier_contact": 1.0 if self.paires.get((src, dst), 0) == 0 else 0.0,
@@ -102,10 +101,8 @@ class Magasin:
             "dst_part_sorties_rapides": rapides / max(nb_out, 1),
             "dst_min_depuis_entree": ((t - cd.in_t[hi - 1]) if hi else -1) / 60,
             "montant_vs_habitude_dst": a * nb_in / (som_in + 1) if nb_in else -1.0,
-            "src_anciennete_j": anciennete(cs),
             "src_nb_envois": float(he),
             "src_nb_envois_10min": float(he - bisect_left(cs.env_t, max(t - 600, 0))),
-            "src_recu_30min_vs_montant": sum(cs.in_m[ls:hs]) / (a + 1),
         }
         assert list(f) == NOMS
         return f

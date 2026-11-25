@@ -15,7 +15,7 @@ def client(monde):
 
 def test_sante(client):
     r = client.get("/sante").json()
-    assert r["etat"] == "ok" and r["signaux"] == 19 and r["comptes_connus"] > 0
+    assert r["etat"] == "ok" and r["signaux"] == 17 and r["comptes_connus"] > 0
 
 
 def test_noter_puis_enregistrer(client):

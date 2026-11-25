@@ -122,7 +122,7 @@ with st.sidebar:
                "est masquée ; « F » est une commodité d'affichage. Les noms sont inventés.")
 
 onglet_cas, onglet_flux, onglet_bac, onglet_mesures = st.tabs(
-    ["L'arnaque en direct", "Une journée rejouée", "Bac à sable", "Mesures et limites"])
+    ["L'arnaque en direct", "Trois heures rejouées", "Bac à sable", "Mesures et limites"])
 
 # ----------------------------------------------------------------------------- 1. les cas
 with onglet_cas:
@@ -207,7 +207,7 @@ with onglet_cas:
 
 # ----------------------------------------------------------------------------- 2. le flux
 with onglet_flux:
-    st.write("Tous les transferts du premier jour de test, dans l'ordre où ils arrivent. Le modèle ne les a "
+    st.write(f"Tous les transferts de {config.DEMO_DUREE_H} heures du premier jour de test, dans l'ordre où ils arrivent. Le modèle ne les a "
              "jamais vus. Chaque transfert est noté avant d'être enregistré, comme le ferait le service.")
     if "flux_magasin" not in etat:
         with st.spinner("Chargement de l'historique des comptes..."):
@@ -224,7 +224,7 @@ with onglet_flux:
     c1, c2, c3 = st.columns(3)
     fini = etat["flux_position"] >= len(FLUX)
     c1.button("Jouer 100 transferts", type="primary", disabled=fini, on_click=avancer, args=(100,))
-    c2.button("Jouer toute la journée", disabled=fini, on_click=avancer, args=(None,))
+    c2.button("Jouer tout le flux", disabled=fini, on_click=avancer, args=(None,))
     c3.button("Revenir au début", on_click=recommencer)
     st.progress(min(1.0, etat["flux_position"] / max(1, len(FLUX))),
                 text=f"{len(etat['flux_verdicts'])} transferts notés")
@@ -304,17 +304,38 @@ with onglet_mesures:
         st.info("Mesures absentes : lancer `python -m sentinelle.integrer`.")
     else:
         d = m["decoupage"]
-        st.write(f"Mesures sur les jours 24 à 30, jamais vus par le modèle : {d['test']['transferts']:,} transferts, "
-                 f"dont {d['test']['fraudes']:,} frauduleux. Seuils réglés sur les jours 20 à 23.".replace(",", " "))
+        st.write(f"Mesures sur les jours {config.JOUR_TEST + 1} à {config.JOUR_FIN_TEST}, jamais vus par le modèle : "
+                 f"{d['test']['transferts']:,} transferts, dont {d['test']['fraudes']:,} frauduleux "
+                 f"({pourcent(m['hasard'], 2)}). Seuils réglés sur les jours {config.JOUR_VALIDATION + 1} "
+                 f"à {config.JOUR_TEST}.".replace(",", " "))
+        vict, ref = m.get("victimes"), m.get("reference_simple")
+        if vict and ref:
+            st.subheader("Le modèle face à une référence simple")
+            st.write("Un transfert de victime est le seul que l'on peut encore arrêter : c'est la mesure principale. "
+                     f"La référence est une règle unique, sans apprentissage : {ref['regle']}.")
+            st.dataframe(pd.DataFrame([
+                {"Méthode": "Règle simple", "Transferts de victimes signalés": pourcent(ref["victimes_signalees"]),
+                 "Fausses alertes": pourcent(ref["fausses_alertes"], 2), "Alertes justes": pourcent(ref["alertes_justes"])},
+                {"Méthode": f"Modèle XGBoost ({len(moteur.signaux)} signaux)",
+                 "Transferts de victimes signalés": pourcent(vict["signalees"]),
+                 "Fausses alertes": pourcent(m["fausses_alertes"], 2), "Alertes justes": pourcent(m["alertes_justes"])},
+            ]), hide_index=True)
         k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Fraudes signalées", pourcent(m["fraudes_signalees"]))
+        k1.metric("Fraudes signalées", pourcent(m["fraudes_signalees"]),
+                  help="Tous les transferts frauduleux, y compris ceux entre comptes complices, après le vol")
         k2.metric("Fausses alertes", pourcent(m["fausses_alertes"], 2))
         k3.metric("Alertes justes", pourcent(m["alertes_justes"]), help="Part des alertes qui sont de vraies fraudes")
         k4.metric("Précision moyenne", f"{m['precision_moyenne']:.3f}".replace(".", ","),
                   help=f"Un tirage au hasard donnerait {m['hasard']:.3f}")
         cache, vierge = m["scenario_cache"], m["premier_transfert_mule_vierge"]
-        st.write(f"**Scénario jamais vu à l'entraînement** ({SCENARIOS.get(cache['nom'], cache['nom'])}) : "
-                 f"{pourcent(cache['part_alertee'])} de ses transferts sont signalés.")
+        cv = cache.get("victimes")
+        if cv:
+            st.write(f"**Limite : scénario jamais vu à l'entraînement** ({SCENARIOS.get(cache['nom'], cache['nom'])}) : "
+                     f"{cv['alertes']} transferts de victimes signalés sur {cv['total']}. Le premier compte de la chaîne "
+                     "a l'air propre ; ce sont ses voisins qui le trahissent, et le modèle ne les regarde pas encore.")
+        else:
+            st.write(f"**Scénario jamais vu à l'entraînement** ({SCENARIOS.get(cache['nom'], cache['nom'])}) : "
+                     f"{pourcent(cache['part_alertee'])} de ses transferts sont signalés.")
         st.write(f"**Limite** : premier transfert d'une victime vers une mule qui n'a encore rien reçu : "
                  f"{vierge['alertes']} signalés sur {vierge['total']}. Sans passé à lire, Sentinelle ne voit rien.")
         st.dataframe(pd.DataFrame([{
@@ -324,7 +345,10 @@ with onglet_mesures:
         st.subheader("À dire avec ces chiffres")
         st.write("- Les données sont simulées et les scénarios d'arnaque sont les nôtres : délais, montants et "
                  "nombre de mules sont des hypothèses.\n"
-                 "- Le scénario caché est la preuve que le modèle ne récite pas seulement ce qu'il a appris.\n"
+                 "- Sur 100 alertes, environ un tiers visent une vraie fraude : le modèle signale, le prestataire "
+                 "de paiement décide.\n"
+                 "- Le scénario caché montre la limite du modèle : une arnaque d'une forme nouvelle lui échappe "
+                 "presque entièrement.\n"
                  "- Le modèle s'entraîne sur GPU ; le service de score, lui, tourne sans GPU.")
     temps = moteur.meta.get("temps_s") or {}
     if temps:
