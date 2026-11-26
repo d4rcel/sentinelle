@@ -9,9 +9,10 @@ from typing import Optional
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from . import config
+from . import config, console
 from .moteur import ModeleAbsent, Moteur
 from .rejeu import magasin_depuis
 
@@ -98,3 +99,49 @@ def reinitialiser():
     with _verrou:
         _charger()
         return {"reinitialise": True, "operations_connues": _etat["magasin"].nb_evenements}
+
+
+# ----------------------------------------------------------------------------- console institution
+class Saisie(BaseModel):
+    expediteur: str = Field(min_length=1)
+    destinataire: str = Field(min_length=1)
+    montant: float = Field(gt=0)
+    enregistrer: bool = Field(False, description="ajouter le transfert à l'historique après l'avoir noté")
+
+
+def _console():
+    """Prépare une fois les données de la console : le flux de démo rejoué et noté."""
+    if "console" not in _etat:
+        try:
+            moteur, magasin, donnees = console.preparer()
+        except (ModeleAbsent, FileNotFoundError) as e:
+            raise HTTPException(status_code=503, detail=f"Console indisponible : {e}")
+        _etat["console"] = {"moteur": moteur, "magasin": magasin, "donnees": donnees}
+    return _etat["console"]
+
+
+@app.get("/demo", include_in_schema=False)
+def page_console():
+    """La console institution : flux, file du département risque, transaction unique."""
+    return FileResponse(config.RACINE / "demo" / "console.html", media_type="text/html")
+
+
+@app.get("/demo/sans", include_in_schema=False)
+def page_sans_sentinelle():
+    """Le même flux sans Sentinelle : tout passe. Même page, qui lit son mode dans l'adresse."""
+    return FileResponse(config.RACINE / "demo" / "console.html", media_type="text/html")
+
+
+@app.get("/demo/donnees")
+def donnees_console():
+    """Le flux de démo noté transfert par transfert. Les seuils sont appliqués par la console."""
+    with _verrou:
+        return _console()["donnees"]
+
+
+@app.post("/demo/noter")
+def noter_console(op: Saisie):
+    """Note une transaction saisie à la main contre l'historique connu à la fin du flux."""
+    with _verrou:
+        c = _console()
+        return console.noter_un(c["moteur"], c["magasin"], op.expediteur, op.destinataire, op.montant, op.enregistrer)

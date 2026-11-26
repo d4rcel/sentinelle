@@ -117,6 +117,8 @@ scripts/telecharger_donnees.sh paysim
 bash lancer.sh
 ```
 
+- **Console institution : http://127.0.0.1:8000/demo** (flux en direct, file du département risque et
+  conformité, transaction unique)
 - Service : http://127.0.0.1:8000/docs
 - Écran de démonstration : http://localhost:8501
 

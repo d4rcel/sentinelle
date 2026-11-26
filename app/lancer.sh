@@ -3,6 +3,7 @@
 #
 #   bash lancer.sh              service + écran de démo (par défaut)
 #   bash lancer.sh tests        tests automatiques (petit jeu de données fabriqué, sans PaySim)
+#   bash lancer.sh console      la console institution seule, sur http://127.0.0.1:8000/demo
 #   bash lancer.sh api          le service seul, sur http://127.0.0.1:8000
 #   bash lancer.sh integrer     réintégrer le modèle déposé dans modeles/
 #   bash lancer.sh entrainer    entraîner ici (ajouter --volume 20 pour chronométrer CPU contre GPU)
@@ -44,9 +45,12 @@ case "${1:-demo}" in
     uvicorn sentinelle.api:app --port "$PORT_API" --log-level warning &
     API=$!
     trap 'kill $API 2>/dev/null || true' EXIT
-    echo "== Service : http://127.0.0.1:$PORT_API/docs     Démo : http://localhost:$PORT_DEMO     (Ctrl+C pour arrêter)"
+    echo "== Console institution : http://127.0.0.1:$PORT_API/demo"
+    echo "== Service : http://127.0.0.1:$PORT_API/docs     Écran d'analyse : http://localhost:$PORT_DEMO     (Ctrl+C pour arrêter)"
     streamlit run demo/app.py --server.port "$PORT_DEMO" --server.headless true --browser.gatherUsageStats false
     ;;
+  console)   preparer; echo "== Console institution : http://127.0.0.1:$PORT_API/demo     (Ctrl+C pour arrêter)"
+             uvicorn sentinelle.api:app --port "$PORT_API" --log-level warning ;;
   api)       preparer; uvicorn sentinelle.api:app --port "$PORT_API" ;;
   tests)     python -m pytest -q tests ;;
   integrer)  python -m sentinelle.integrer ;;

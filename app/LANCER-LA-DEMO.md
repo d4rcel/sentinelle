@@ -60,6 +60,35 @@ curl -s -X POST http://127.0.0.1:8000/noter -H 'Content-Type: application/json' 
 Routes : `POST /noter` (verdict, sans rien enregistrer), `POST /transferts` et `POST /retraits`
 (opérations confirmées), `GET /comptes/{id}`, `GET /sante`, `POST /reinitialiser`.
 
+## La console institution
+
+Ouvrir http://127.0.0.1:8000/demo une fois le service lancé (`bash lancer.sh`, ou `bash lancer.sh console`
+pour elle seule). Elle s'adresse à un établissement : banque, opérateur, prestataire de paiement.
+
+| Vue | Ce qu'elle montre |
+|---|---|
+| Flux en direct | Les 7 432 transferts du flux traversent Sentinelle. Chacun passe ou est bloqué avant l'envoi. Un curseur règle le seuil de blocage de l'établissement et reclasse aussitôt le trafic : arnaques arrêtées d'un côté, clients honnêtes bloqués à tort de l'autre. |
+| Risque et conformité | La file des transferts bloqués et des transactions envoyées à la main. L'analyste confirme la fraude (le compte passe sous surveillance, ses prochains transferts sont bloqués), déclare une fausse alerte (le compte est déclaré de confiance), ou ouvre une analyse approfondie (ticket interne). |
+| Transaction unique | Choisir une transaction préparée dans une liste (les champs se remplissent), ou saisir la sienne, puis l'envoyer. Elle est notée et transmise à la file du département risque. |
+
+Déroulé conseillé en deux minutes : lancer le flux en vitesse « Rapide », passer de « Recommandé » à
+« Bloquer tôt » pour montrer le prix d'un seuil trop bas, ouvrir « Risque et conformité », confirmer une
+fraude, libérer une fausse alerte, puis envoyer une transaction préparée.
+
+Si le jury demande « et sans votre solution ? » : ouvrir http://127.0.0.1:8000/demo/sans. La page rejoue
+le même flux sans Sentinelle : rien n'est noté, tout passe, et un compteur suit les arnaques parties. Elle
+est indépendante de la console. À dire : « sans contrôle sur le comportement du compte destinataire », car
+un établissement a déjà d'autres règles, comme des plafonds de montant.
+
+Présentation sur deux fenêtres : ouvrir http://127.0.0.1:8000/demo#flux d'un côté et
+http://127.0.0.1:8000/demo#risque de l'autre, dans le même navigateur. Les fenêtres partagent leur état :
+un transfert bloqué à gauche apparaît aussitôt dans la file à droite, et une décision de l'analyste est
+prise en compte par le flux.
+
+À dire : la décision automatique tombe avant l'envoi, parce qu'un transfert confirmé est irrévocable. L'analyste
+intervient ensuite. Le seuil, les tickets et les listes de surveillance et de confiance vivent dans le
+navigateur : rien n'est relié à un outil interne réel. Les montants suivent PaySim, pas le franc CFA.
+
 ## L'écran de démo
 
 | Onglet | Ce qu'il montre |

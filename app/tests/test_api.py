@@ -34,6 +34,18 @@ def test_montant_invalide_refuse(client):
     assert client.post("/noter", json={"expediteur": "a", "destinataire": "b", "montant": -5}).status_code == 422
 
 
+def test_console_institution(client):
+    assert "Sentinelle" in client.get("/demo").text and client.get("/demo/sans").status_code == 200
+    d = client.get("/demo/donnees").json()
+    t = d["transferts"]
+    assert len(t) > 0 and 0 < d["seuils"]["avertir"] <= d["seuils"]["bloquer"]
+    assert all(0 <= x["score"] <= 1 and {"src", "dst", "montant", "raisons", "victime", "apercu"} <= set(x) for x in t)
+    assert all(x["raisons"] for x in t if x["score"] >= d["seuils"]["avertir"])      # toute alerte a sa raison
+    v = client.post("/demo/noter", json={"expediteur": "essai", "destinataire": "jamais-vu", "montant": 150000}).json()
+    assert 0 <= v["score"] <= 1 and v["raisons"] and v["apercu"]["dst_nb_recus"] == 0
+    assert client.post("/demo/noter", json={"expediteur": "a", "destinataire": "b", "montant": 0}).status_code == 422
+
+
 def test_reinitialiser(client):
     client.post("/transferts", json={"expediteur": "x1", "destinataire": "x2", "montant": 1000})
     avant = client.post("/reinitialiser").json()["operations_connues"]
